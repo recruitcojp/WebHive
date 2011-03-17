@@ -1,0 +1,2 @@
+1386677351
+a:3:{s:2:"id";a:5:{s:4:"type";s:6:"string";s:4:"null";b:0;s:7:"default";s:0:"";s:6:"length";i:255;s:3:"key";s:7:"primary";}s:4:"data";a:4:{s:4:"type";s:4:"text";s:4:"null";b:1;s:7:"default";N;s:6:"length";N;}s:7:"expires";a:4:{s:4:"type";s:7:"integer";s:4:"null";b:1;s:7:"default";N;s:6:"length";i:11;}}

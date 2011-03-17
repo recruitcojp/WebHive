@@ -1,0 +1,12 @@
+2011/03/05 04:03:01 INF:log_delete.sh start
+2011/03/05 04:03:01 INF:log_delete(/var/www/html/WebHive/request,3,*.hql)
+2011/03/05 04:03:01 INF:log_delete(/var/www/html/WebHive/result,3,*.out)
+2011/03/05 04:03:01 INF:log_delete(/var/www/html/WebHive/result,3,*.csv)
+2011/03/05 04:03:01 INF:log_delete(/var/www/html/WebHive/result,3,*.pid)
+2011/03/05 04:03:01 INF:log_delete(/var/www/html/WebHive/result,3,*.tmp)
+2011/03/05 04:03:01 INF:log_delete(/var/www/html/WebHive/result,3,*.exp)
+2011/03/05 04:03:01 INF:ディスク使用率=90% (THR=70%)
+2011/03/05 04:03:01 INF:緊急パージ処理(1048576KB以上のログを削除します)
+2011/03/05 04:03:01 INF:log_delete_em(/var/www/html/WebHive/result,1048576,*.csv)
+2011/03/05 04:03:01 INF:log_delete_em(/var/www/html/WebHive/result,1048576,*.tmp)
+2011/03/05 04:03:01 INF:log_delete.sh end

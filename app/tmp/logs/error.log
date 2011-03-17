@@ -1,0 +1,407 @@
+2011-03-16 20:23:42 Warning: Warning (2): opendir(/tmp/hadoop) [<a href='http://php.net/function.opendir'>function.opendir</a>]: failed to open dir: No such file or directory in [/var/www/html/WebHive/app/controllers/components/common.php, line 186]
+2011-03-16 20:23:42 Error: (0+0)/1 => 1
+2011-03-16 20:25:27 Warning: Warning (2): opendir(/tmp/hadoop) [<a href='http://php.net/function.opendir'>function.opendir</a>]: failed to open dir: No such file or directory in [/var/www/html/WebHive/app/controllers/components/common.php, line 186]
+2011-03-16 20:25:27 Error: (0+0)/1 => 1
+2011-03-16 20:27:35 Error: RequestID=20110316202521_01534
+2011-03-16 20:27:35 Warning: Warning (2): opendir(/tmp/hadoop) [<a href='http://php.net/function.opendir'>function.opendir</a>]: failed to open dir: No such file or directory in [/var/www/html/WebHive/app/controllers/components/common.php, line 186]
+2011-03-16 22:43:52 Warning: Warning (2): opendir(/tmp/hadoop) [<a href='http://php.net/function.opendir'>function.opendir</a>]: failed to open dir: No such file or directory in [/var/www/html/WebHive/app/controllers/components/common.php, line 186]
+2011-03-16 22:43:52 Error: (0+0)/1 => 1
+2011-03-16 22:50:37 Error: (0+0)/1 => 1
+2011-03-16 22:51:01 Error: (0+0)/1 => 1
+2011-03-16 22:52:22 Error: (0+0)/2 => 1
+2011-03-17 12:02:47 Error: (0+0)/2 => 1
+2011-03-17 12:02:52 Error: (0+0)/2 => 1
+2011-03-17 12:07:15 Error: (0+0)/2 => 1
+2011-03-17 12:07:20 Error: (0+0)/2 => 1
+2011-03-17 12:16:39 Error: /var/www/html/WebHive/result/20110317121630_05041.out
+2011-03-17 12:16:39 Error: /var/www/html/WebHive/result/20110317121630_05041.csv
+2011-03-17 12:16:39 Error: /var/www/html/WebHive/result/20110317121630_05041.pid
+2011-03-17 12:24:51 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:24:51 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:24:51 Error: (0+0)/2 => 1
+2011-03-17 12:24:51 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:24:51 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:24:56 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:24:56 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:24:56 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:24:56 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:25:01 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:25:01 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:25:01 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:25:01 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:25:06 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:25:06 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:25:06 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:25:06 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:25:11 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:25:11 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:25:11 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:25:11 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:25:16 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:25:16 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:25:16 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:25:16 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:25:21 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:25:21 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:25:21 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:25:21 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:25:26 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:25:26 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:25:26 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:25:26 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:25:31 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:25:31 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:25:31 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:25:31 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:25:37 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:25:37 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:25:37 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:25:37 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:25:42 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:25:42 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:25:42 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:25:42 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:25:47 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:25:47 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:25:47 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:25:47 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:25:52 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:25:52 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:25:52 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:25:52 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:25:57 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:25:57 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:25:57 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:25:57 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:26:02 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:26:02 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:26:02 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:26:02 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:26:07 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:26:07 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:26:07 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:26:07 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:26:12 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:26:12 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:26:12 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:26:12 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:26:18 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:26:18 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:26:18 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:26:18 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:26:23 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:26:23 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:26:23 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:26:23 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:26:28 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:26:28 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:26:28 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:26:28 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:26:33 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:26:33 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:26:33 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:26:33 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:26:38 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:26:38 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:26:38 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:26:38 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:26:43 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:26:43 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:26:43 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:26:43 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:26:48 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:26:48 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:26:48 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:26:48 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:26:53 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:26:53 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:26:53 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:26:53 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:26:58 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:26:58 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:26:58 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:26:58 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:27:04 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:27:04 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:27:04 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:27:04 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:27:09 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:27:09 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:27:09 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:27:09 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:27:14 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:27:14 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:27:14 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:27:14 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:27:19 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:27:19 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:27:19 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:27:19 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:27:24 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:27:24 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:27:24 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:27:24 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:27:29 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:27:29 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:27:29 Error: 1
+2011-03-17 12:27:29 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:27:29 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:27:34 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:27:34 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:27:34 Error: 1
+2011-03-17 12:27:34 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:27:34 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:27:39 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:27:39 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:27:39 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:27:39 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:27:44 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:27:44 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:27:44 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:27:44 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:27:50 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:27:50 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:27:50 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:27:50 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:27:55 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:27:55 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:27:55 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:27:55 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:28:00 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:28:00 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:28:00 Error: /var/www/html/WebHive/result/20110317122442_05047.pid
+2011-03-17 12:28:00 Error: /var/www/html/WebHive/result/20110317122442_05047.csv
+2011-03-17 12:28:05 Error: /var/www/html/WebHive/result/20110317122442_05047.out
+2011-03-17 12:28:05 Error: /var/www/html/WebHive/result/20110317122442_05047.exp
+2011-03-17 12:28:42 Error: /var/www/html/WebHive/result/20110317122835_05041.out
+2011-03-17 12:28:42 Error: /var/www/html/WebHive/result/20110317122835_05041.exp
+2011-03-17 12:28:42 Error: (0+0)/1 => 1
+2011-03-17 12:28:42 Error: /var/www/html/WebHive/result/20110317122835_05041.pid
+2011-03-17 12:28:42 Error: /var/www/html/WebHive/result/20110317122835_05041.csv
+2011-03-17 12:28:47 Error: /var/www/html/WebHive/result/20110317122835_05041.out
+2011-03-17 12:28:47 Error: /var/www/html/WebHive/result/20110317122835_05041.exp
+2011-03-17 12:36:35 Error: (0+0)/2 => 1
+2011-03-17 12:41:59 Error: (0+0)/1 => 1
+2011-03-17 12:54:10 Error: (0+0)/1 => 1
+2011-03-17 13:00:05 Error: SearchJobInfo() => ,1,0,0
+2011-03-17 13:00:05 Error: (1+1)/1 => 100
+2011-03-17 13:37:29 Error: SearchJobInfo() => ,1,0,0
+2011-03-17 13:37:29 Error: (0+0)/4 => 1
+2011-03-17 13:37:34 Error: SearchJobInfo() => job_201103171258_0001,1,100,0
+2011-03-17 13:37:34 Error: (0+1)/4 => 25
+2011-03-17 13:37:39 Error: SearchJobInfo() => job_201103171258_0001,1,100,0
+2011-03-17 13:37:39 Error: (0+1)/4 => 25
+2011-03-17 13:37:44 Error: SearchJobInfo() => job_201103171258_0001,1,100,100
+2011-03-17 13:37:44 Error: (0+1)/4 => 25
+2011-03-17 13:37:49 Error: SearchJobInfo() => job_201103171258_0001,2,100,100
+2011-03-17 13:37:49 Error: (0+2)/4 => 50
+2011-03-17 13:37:54 Error: SearchJobInfo() => job_201103171258_0002,2,100,0
+2011-03-17 13:37:54 Error: (0+2)/4 => 50
+2011-03-17 13:37:59 Error: SearchJobInfo() => job_201103171258_0002,2,100,0
+2011-03-17 13:37:59 Error: (0+2)/4 => 50
+2011-03-17 13:38:05 Error: SearchJobInfo() => job_201103171258_0002,2,100,100
+2011-03-17 13:38:05 Error: (0+2)/4 => 50
+2011-03-17 13:38:10 Error: SearchJobInfo() => job_201103171258_0002,3,100,100
+2011-03-17 13:38:10 Error: (0+3)/4 => 75
+2011-03-17 13:38:15 Error: SearchJobInfo() => job_201103171258_0003,3,100,0
+2011-03-17 13:38:15 Error: (0+3)/4 => 75
+2011-03-17 13:38:20 Error: SearchJobInfo() => job_201103171258_0003,3,100,0
+2011-03-17 13:38:20 Error: (0+3)/4 => 75
+2011-03-17 13:38:25 Error: SearchJobInfo() => job_201103171258_0003,3,100,100
+2011-03-17 13:38:25 Error: (0+3)/4 => 75
+2011-03-17 13:38:30 Error: SearchJobInfo() => job_201103171258_0003,4,100,100
+2011-03-17 13:38:30 Error: (1+4)/4 => 100
+2011-03-17 13:47:05 Error: queryid=hadoop_20110317134646_e91adaac-6891-4a21-a384-2f404f7c3628
+2011-03-17 13:47:05 Error: SearchJobInfo() => ,1,0,0
+2011-03-17 13:47:05 Error: (0+0)/12 => 1
+2011-03-17 13:47:10 Error: queryid=hadoop_20110317134646_e91adaac-6891-4a21-a384-2f404f7c3628
+2011-03-17 13:47:11 Error: SearchJobInfo() => job_201103171258_0004,1,100,0
+2011-03-17 13:47:11 Error: (0+1)/12 => 8
+2011-03-17 13:47:16 Error: queryid=hadoop_20110317134646_e91adaac-6891-4a21-a384-2f404f7c3628
+2011-03-17 13:47:16 Error: SearchJobInfo() => job_201103171258_0004,1,100,0
+2011-03-17 13:47:16 Error: (0+1)/12 => 8
+2011-03-17 13:47:21 Error: queryid=hadoop_20110317134646_e91adaac-6891-4a21-a384-2f404f7c3628
+2011-03-17 13:47:21 Error: SearchJobInfo() => job_201103171258_0004,1,100,100
+2011-03-17 13:47:21 Error: (0+1)/12 => 8
+2011-03-17 13:47:26 Error: queryid=hadoop_20110317134646_e91adaac-6891-4a21-a384-2f404f7c3628
+2011-03-17 13:47:26 Error: SearchJobInfo() => job_201103171258_0004,2,100,100
+2011-03-17 13:47:26 Error: (0+2)/12 => 17
+2011-03-17 13:47:31 Error: queryid=hadoop_20110317134646_e91adaac-6891-4a21-a384-2f404f7c3628
+2011-03-17 13:47:31 Error: SearchJobInfo() => job_201103171258_0005,2,100,0
+2011-03-17 13:47:31 Error: (0+2)/12 => 17
+2011-03-17 13:47:36 Error: queryid=hadoop_20110317134646_e91adaac-6891-4a21-a384-2f404f7c3628
+2011-03-17 13:47:36 Error: SearchJobInfo() => job_201103171258_0005,2,100,0
+2011-03-17 13:47:36 Error: (0+2)/12 => 17
+2011-03-17 13:47:41 Error: queryid=hadoop_20110317134646_e91adaac-6891-4a21-a384-2f404f7c3628
+2011-03-17 13:47:41 Error: SearchJobInfo() => job_201103171258_0005,2,100,100
+2011-03-17 13:47:41 Error: (0+2)/12 => 17
+2011-03-17 13:47:46 Error: queryid=hadoop_20110317134646_e91adaac-6891-4a21-a384-2f404f7c3628
+2011-03-17 13:47:46 Error: SearchJobInfo() => job_201103171258_0005,3,100,100
+2011-03-17 13:47:46 Error: (0+3)/12 => 25
+2011-03-17 13:47:52 Error: queryid=hadoop_20110317134646_e91adaac-6891-4a21-a384-2f404f7c3628
+2011-03-17 13:47:52 Error: SearchJobInfo() => job_201103171258_0006,3,100,0
+2011-03-17 13:47:52 Error: (0+3)/12 => 25
+2011-03-17 13:47:57 Error: queryid=hadoop_20110317134646_e91adaac-6891-4a21-a384-2f404f7c3628
+2011-03-17 13:47:57 Error: SearchJobInfo() => job_201103171258_0006,3,100,0
+2011-03-17 13:47:57 Error: (0+3)/12 => 25
+2011-03-17 13:48:02 Error: queryid=hadoop_20110317134646_e91adaac-6891-4a21-a384-2f404f7c3628
+2011-03-17 13:48:02 Error: SearchJobInfo() => job_201103171258_0006,3,100,100
+2011-03-17 13:48:02 Error: (0+3)/12 => 25
+2011-03-17 13:48:07 Error: queryid=hadoop_20110317134747_843ac2a4-dac2-4264-bb2a-f583865510c7
+2011-03-17 13:48:07 Error: (1+0)/12 => 8
+2011-03-17 13:48:12 Error: queryid=hadoop_20110317134747_843ac2a4-dac2-4264-bb2a-f583865510c7
+2011-03-17 13:48:12 Error: (1+0)/12 => 8
+2011-03-17 13:48:17 Error: queryid=hadoop_20110317134747_843ac2a4-dac2-4264-bb2a-f583865510c7
+2011-03-17 13:48:17 Error: (1+0)/12 => 8
+2011-03-17 13:48:22 Error: queryid=hadoop_20110317134747_843ac2a4-dac2-4264-bb2a-f583865510c7
+2011-03-17 13:48:22 Error: (1+0)/12 => 8
+2011-03-17 13:48:27 Error: queryid=hadoop_20110317134747_843ac2a4-dac2-4264-bb2a-f583865510c7
+2011-03-17 13:48:27 Error: (1+0)/12 => 8
+2011-03-17 13:48:33 Error: queryid=hadoop_20110317134747_843ac2a4-dac2-4264-bb2a-f583865510c7
+2011-03-17 13:48:33 Error: (1+0)/12 => 8
+2011-03-17 13:48:38 Error: queryid=hadoop_20110317134747_843ac2a4-dac2-4264-bb2a-f583865510c7
+2011-03-17 13:48:38 Error: (1+0)/12 => 8
+2011-03-17 13:48:43 Error: queryid=hadoop_20110317134747_843ac2a4-dac2-4264-bb2a-f583865510c7
+2011-03-17 13:48:43 Error: (1+0)/12 => 8
+2011-03-17 13:48:48 Error: queryid=hadoop_20110317134747_843ac2a4-dac2-4264-bb2a-f583865510c7
+2011-03-17 13:48:48 Error: (1+0)/12 => 8
+2011-03-17 13:48:53 Error: queryid=hadoop_20110317134747_843ac2a4-dac2-4264-bb2a-f583865510c7
+2011-03-17 13:48:53 Error: (1+0)/12 => 8
+2011-03-17 13:48:58 Error: queryid=hadoop_20110317134747_843ac2a4-dac2-4264-bb2a-f583865510c7
+2011-03-17 13:48:58 Error: (1+0)/12 => 8
+2011-03-17 13:49:03 Error: queryid=hadoop_20110317134747_843ac2a4-dac2-4264-bb2a-f583865510c7
+2011-03-17 13:49:03 Error: (1+0)/12 => 8
+2011-03-17 13:49:08 Error: queryid=hadoop_20110317134848_47e92d93-78d8-4eae-80e5-e78f0c6b95cc
+2011-03-17 13:49:08 Error: (2+0)/12 => 17
+2011-03-17 13:49:14 Error: queryid=hadoop_20110317134848_47e92d93-78d8-4eae-80e5-e78f0c6b95cc
+2011-03-17 13:49:14 Error: (2+0)/12 => 17
+2011-03-17 13:49:19 Error: queryid=hadoop_20110317134848_47e92d93-78d8-4eae-80e5-e78f0c6b95cc
+2011-03-17 13:49:19 Error: (2+0)/12 => 17
+2011-03-17 13:49:24 Error: queryid=hadoop_20110317134848_47e92d93-78d8-4eae-80e5-e78f0c6b95cc
+2011-03-17 13:49:24 Error: (2+0)/12 => 17
+2011-03-17 13:49:29 Error: queryid=hadoop_20110317134848_47e92d93-78d8-4eae-80e5-e78f0c6b95cc
+2011-03-17 13:49:29 Error: (2+0)/12 => 17
+2011-03-17 13:49:34 Error: queryid=hadoop_20110317134848_47e92d93-78d8-4eae-80e5-e78f0c6b95cc
+2011-03-17 13:49:34 Error: (2+0)/12 => 17
+2011-03-17 13:49:39 Error: queryid=hadoop_20110317134848_47e92d93-78d8-4eae-80e5-e78f0c6b95cc
+2011-03-17 13:49:39 Error: (2+0)/12 => 17
+2011-03-17 13:49:44 Error: queryid=hadoop_20110317134848_47e92d93-78d8-4eae-80e5-e78f0c6b95cc
+2011-03-17 13:49:44 Error: (2+0)/12 => 17
+2011-03-17 13:49:49 Error: queryid=hadoop_20110317134848_47e92d93-78d8-4eae-80e5-e78f0c6b95cc
+2011-03-17 13:49:49 Error: (2+0)/12 => 17
+2011-03-17 13:49:55 Error: queryid=hadoop_20110317134848_47e92d93-78d8-4eae-80e5-e78f0c6b95cc
+2011-03-17 13:49:55 Error: (2+0)/12 => 17
+2011-03-17 13:50:00 Error: queryid=hadoop_20110317134848_47e92d93-78d8-4eae-80e5-e78f0c6b95cc
+2011-03-17 13:50:00 Error: (2+0)/12 => 17
+2011-03-17 13:50:05 Error: queryid=hadoop_20110317134848_47e92d93-78d8-4eae-80e5-e78f0c6b95cc
+2011-03-17 13:50:05 Error: (2+0)/12 => 17
+2011-03-17 13:50:10 Error: queryid=hadoop_20110317134949_747cf751-d930-4fbf-a6ce-9486baa8e4a0
+2011-03-17 13:50:10 Error: (3+0)/12 => 25
+2011-03-17 13:55:35 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:55:35 Error: SearchJobInfo() => job_201103171258_0013,1,0,0
+2011-03-17 13:55:35 Error: (0+1)/12 => 8
+2011-03-17 13:55:40 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:55:40 Error: SearchJobInfo() => job_201103171258_0013,1,100,0
+2011-03-17 13:55:40 Error: (0+1)/12 => 8
+2011-03-17 13:55:45 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:55:45 Error: SearchJobInfo() => job_201103171258_0013,1,100,0
+2011-03-17 13:55:45 Error: (0+1)/12 => 8
+2011-03-17 13:55:50 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:55:50 Error: SearchJobInfo() => job_201103171258_0013,2,100,100
+2011-03-17 13:55:50 Error: (0+2)/12 => 17
+2011-03-17 13:55:56 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:55:56 Error: SearchJobInfo() => job_201103171258_0014,2,0,0
+2011-03-17 13:55:56 Error: (0+2)/12 => 17
+2011-03-17 13:56:01 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:56:01 Error: SearchJobInfo() => job_201103171258_0014,2,100,0
+2011-03-17 13:56:01 Error: (0+2)/12 => 17
+2011-03-17 13:56:06 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:56:06 Error: SearchJobInfo() => job_201103171258_0014,2,100,0
+2011-03-17 13:56:06 Error: (0+2)/12 => 17
+2011-03-17 13:56:11 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:56:11 Error: SearchJobInfo() => job_201103171258_0014,3,100,100
+2011-03-17 13:56:11 Error: (0+3)/12 => 25
+2011-03-17 13:56:16 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:56:16 Error: SearchJobInfo() => job_201103171258_0015,3,0,0
+2011-03-17 13:56:16 Error: (0+3)/12 => 25
+2011-03-17 13:56:21 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:56:21 Error: SearchJobInfo() => job_201103171258_0015,3,100,0
+2011-03-17 13:56:21 Error: (0+3)/12 => 25
+2011-03-17 13:56:26 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:56:26 Error: SearchJobInfo() => job_201103171258_0015,3,100,0
+2011-03-17 13:56:26 Error: (0+3)/12 => 25
+2011-03-17 13:56:32 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:56:32 Error: SearchJobInfo() => job_201103171258_0015,4,100,100
+2011-03-17 13:56:32 Error: (1+4)/12 => 42
+2011-03-17 13:56:37 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:56:37 Error: SearchJobInfo() => job_201103171258_0016,4,0,0
+2011-03-17 13:56:37 Error: (1+4)/12 => 42
+2011-03-17 13:56:42 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:56:42 Error: SearchJobInfo() => job_201103171258_0016,4,100,0
+2011-03-17 13:56:42 Error: (1+4)/12 => 42
+2011-03-17 13:56:47 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:56:47 Error: SearchJobInfo() => job_201103171258_0016,4,100,0
+2011-03-17 13:56:47 Error: (1+4)/12 => 42
+2011-03-17 13:56:52 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:56:52 Error: SearchJobInfo() => job_201103171258_0016,5,100,100
+2011-03-17 13:56:52 Error: (1+5)/12 => 50
+2011-03-17 13:56:57 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:56:57 Error: SearchJobInfo() => job_201103171258_0017,5,0,0
+2011-03-17 13:56:57 Error: (1+5)/12 => 50
+2011-03-17 13:57:03 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:57:03 Error: SearchJobInfo() => job_201103171258_0017,5,100,0
+2011-03-17 13:57:03 Error: (1+5)/12 => 50
+2011-03-17 13:57:08 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:57:08 Error: SearchJobInfo() => job_201103171258_0017,5,100,100
+2011-03-17 13:57:08 Error: (1+5)/12 => 50
+2011-03-17 13:57:13 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:57:13 Error: SearchJobInfo() => job_201103171258_0017,6,100,100
+2011-03-17 13:57:13 Error: (1+6)/12 => 58
+2011-03-17 13:57:18 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:57:18 Error: SearchJobInfo() => job_201103171258_0018,6,0,0
+2011-03-17 13:57:18 Error: (1+6)/12 => 58
+2011-03-17 13:57:23 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:57:23 Error: SearchJobInfo() => job_201103171258_0018,6,100,0
+2011-03-17 13:57:23 Error: (1+6)/12 => 58
+2011-03-17 13:57:28 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:57:28 Error: SearchJobInfo() => job_201103171258_0018,6,100,0
+2011-03-17 13:57:28 Error: (1+6)/12 => 58
+2011-03-17 13:57:34 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:57:34 Error: SearchJobInfo() => job_201103171258_0018,7,100,100
+2011-03-17 13:57:34 Error: (2+7)/12 => 75
+2011-03-17 13:57:39 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:57:39 Error: SearchJobInfo() => job_201103171258_0019,7,0,0
+2011-03-17 13:57:39 Error: (2+7)/12 => 75
+2011-03-17 13:57:44 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:57:44 Error: SearchJobInfo() => job_201103171258_0019,7,100,0
+2011-03-17 13:57:44 Error: (2+7)/12 => 75
+2011-03-17 13:57:49 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:57:49 Error: SearchJobInfo() => job_201103171258_0019,7,100,0
+2011-03-17 13:57:49 Error: (2+7)/12 => 75
+2011-03-17 13:57:54 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:57:54 Error: SearchJobInfo() => job_201103171258_0019,8,100,100
+2011-03-17 13:57:54 Error: (2+8)/12 => 83
+2011-03-17 13:58:00 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:58:00 Error: SearchJobInfo() => job_201103171258_0020,8,0,0
+2011-03-17 13:58:00 Error: (2+8)/12 => 83
+2011-03-17 13:58:05 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:58:05 Error: SearchJobInfo() => job_201103171258_0020,8,100,0
+2011-03-17 13:58:05 Error: (2+8)/12 => 83
+2011-03-17 13:58:10 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:58:10 Error: SearchJobInfo() => job_201103171258_0020,8,100,0
+2011-03-17 13:58:10 Error: (2+8)/12 => 83
+2011-03-17 13:58:15 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:58:15 Error: SearchJobInfo() => job_201103171258_0020,9,100,100
+2011-03-17 13:58:15 Error: (2+9)/12 => 92
+2011-03-17 13:58:20 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:58:20 Error: SearchJobInfo() => job_201103171258_0021,9,0,0
+2011-03-17 13:58:20 Error: (2+9)/12 => 92
+2011-03-17 13:58:26 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:58:26 Error: SearchJobInfo() => job_201103171258_0021,9,100,0
+2011-03-17 13:58:26 Error: (2+9)/12 => 92
+2011-03-17 13:58:31 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:58:31 Error: SearchJobInfo() => job_201103171258_0021,9,100,0
+2011-03-17 13:58:31 Error: (2+9)/12 => 92
+2011-03-17 13:58:36 Error: queryid=hadoop_20110317135555_164961b6-731d-462b-83c8-143c2cd64770
+2011-03-17 13:58:36 Error: SearchJobInfo() => job_201103171258_0021,10,100,100
+2011-03-17 13:58:36 Error: (3+10)/12 => 100
