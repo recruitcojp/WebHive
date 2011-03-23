@@ -26,5 +26,3 @@ modified        datetime default null,
 PRIMARY KEY (id)
 );
 
-insert into users(username,password,authority)values('admin','admin',1);
-insert into users(username,password,authority)values('guest','guest',2);

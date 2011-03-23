@@ -283,9 +283,6 @@ function HiveDownload(dtype) {
 		"/WebHive/apis/download",
 	   {"method": "post", parameters:parameter, onComplete:HiveDownload_fin}
 	);
-
-	var msg="Data Download(ID=" + sv_reqid + ")...";
-	Ext.getCmp("outDataView").setValue(msg);
 }
 
 // 応答
@@ -296,11 +293,7 @@ function HiveDownload_fin(request) {
 	var dtype=result["dtype"];
 	var datas=result["datas"];
 
-	if ( res != "ok" ){
-		Ext.getCmp("outTab").setActiveTab("outConsole");
-		TextOutFunc("INF:Data Download error(" + res + ")");
-		return;
-	}
+	if ( res != "ok" ){ return; }
 
 	var msg="";
 	for (var i = 0; i < datas.length; i++) {

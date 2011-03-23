@@ -27,9 +27,10 @@ if ( $user['User']['authority'] == 1 ){
 </script>
 <div id="header" style="padding:3px;font-weight:normal;font-size:12px;color:#15428b;" align="right">
 <?php echo $user['User']['username']."さん"; ?>
-&nbsp; <a href="/WebHive/users/logout">LOGOUT</a> &nbsp;
+&nbsp; <a href="/WebHive/users/logout">LOGOUT</a>
+&nbsp; <a href="/WebHive/help" target="_blank">変更履歴</a>
+&nbsp;
 </div>
-<div id="displayPanel"></div>  
-</div>
+<div id="displayPanel" ></div>  
 </body>
 </html>

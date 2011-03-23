@@ -1,8 +1,8 @@
 <?php
 
 //全体定義
-define("APP_TITLE", "WebHive Ver.0.99");		//アプリバージョン
-define("USER_ADMIN", "0");						//0=未認証状態でユーザ管理画面表示を許可 1=admin権限でのみ表示可能
+define("APP_TITLE", "WebHive Ver.1.00");		//アプリバージョン
+define("USER_ADMIN", "0");				//0=未認証状態でユーザ管理画面表示を許可 1=admin権限でのみ表示可能
 
 //ディレクトリ定義
 define("DIR_REQUEST", "/var/www/html/WebHive/request");
@@ -16,8 +16,8 @@ define("CMD_HIVE_SHELL", "/var/www/html/WebHive/app/modules/hive_request.php");
 define("CMD_EXPLAIN_SHELL", "/var/www/html/WebHive/app/modules/hive_explain.php");
 
 //Hive Server関連
-define("HIVE_HOST", "localhost"); 			//hive接続サーバのデフォルト値
-define("HIVE_PORT", "10000");				//hive接続ポートのデフォルト値
+define("HIVE_HOST", "localhost"); 		//hive接続サーバのデフォルト値
+define("HIVE_PORT", "10000");			//hive接続ポートのデフォルト値
 define("HIVE_SEND_TIMEOUT", "86400000");	//hiveQL送信タイムアウト値
 define("HIVE_RECV_TIMEOUT", "86400000");	//hiveQL処理タイムアウト値
 
