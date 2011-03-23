@@ -1,0 +1,161 @@
+【動作環境】
+下記環境にて動作確認を実施しました。
+
+　AWS Elastic MapReduce Amazon
+　2.6.21.7-2.fc8xen
+　Apache/2.2.9
+　PHP 5.2.6-1+lenny9
+　MySQL 5.0.51a-24+lenny5
+
+【導入手順】
+
+①日本時間に変更
+# cp -p /usr/share/zoneinfo/Japan /etc/localtime
+
+②viでUTF-8を利用
+# export LANG=ja_JP.UTF-8
+# apt-get install vim
+# update-alternatives --config editor                                 ・・/usr/bin/vim.basicに変更
+# vi /etc/vim/vimrc.local
+set encoding=utf-8
+set fileencodings=utf-8,iso-2022-jp,ucs21e,ucs-2,cp932,euc-jp,latin1
+
+③apacheインストール
+(1)apache導入
+# apt-get install apache2
+# cd /etc/apache2
+(2)モジュール導入
+# apt-get install libapache2-mod-php5
+(3)rewite設定有効化
+# cd /etc/apache2/mods-enabled
+# ln -s ../mods-available/rewrite.load
+(4)apache設定
+# cd /etc/apache2/sites-available
+# vi default
+DocumentRoot(/var/www)ディレクティブ設定を変更する。
+  変更前）AllowOverride None
+  変更前）AllowOverride All
+(5)apache再起動
+# /etc/init.d/apache2 restart
+
+
+④MySQLの設定
+# mysql -u root -p
+mysql> create database <DB名>;
+mysql> GRANT ALL PRIVILEGES ON <DB名>.* to <ユーザ名>@localhost identified by '<パスワード>';
+mysql> flush privileges;
+
+作成したDBに接続できるのを確認する。
+# mysql -u <ユーザ名> -p<パスワード> <DB名>
+
+作成したDBで以下のcreate文を実行する。
+=================================================
+CREATE TABLE cake_sessions (
+  id varchar(255) NOT NULL default '',
+  data text,
+  expires int(11) default NULL,
+  PRIMARY KEY  (id)
+);
+
+CREATE TABLE users (
+id              integer auto_increment,
+username        varchar(50),
+password        varchar(50),
+authority               int,
+hive_host       varchar(50),
+hive_port       int,
+created         datetime default null,
+modified        datetime default null,
+PRIMARY KEY (id)
+);
+
+CREATE TABLE hiveqls (
+id              integer auto_increment,
+title           varchar(256),
+query           varchar(2048),
+created         datetime default null,
+modified        datetime default null,
+PRIMARY KEY (id)
+);
+
+=================================================
+
+⑤hive server動作確認
+# php /var/www/WebHive/app/modules/test.php
+
+
+⑥WebHiveの導入
+(1)WebHiveパッケージダウンロード
+https://github.com/recruitcojp/WebHive/
+
+(2)WebHiveインストール
+# cd /var/www
+# tar zxvf recruitcojp-WebHive-f711e9f.tar.gz
+# mv recruitcojp-WebHive-f711e9f WebHive
+# chown -R apache:apache WebHive
+
+(3)WebHiveの設定
+# cd /var/www/WebHive/app/config
+# vi database.php
+環境に合わせてmysqlのDB名、ユーザ名、パスワードを変更する。
+        var $default = array(
+                'driver' => 'mysql',
+                'persistent' => false,
+                'host' => 'localhost',
+                'login' => 'ユーザ名',
+                'password' => 'パスワード',
+                'database' => 'DB名',
+                'prefix' => '',
+        );
+
+
+# cp app.php.aws app.php
+# vi app.php
+環境に合わせて設定を変更する。
+
+(4)ディレクトリ設定
+# mkdir /mnt/WebHive
+# mkdir /mnt/WebHive/request
+# mkdir /mnt/WebHive/result
+# chown -R www-data:www-data /mnt/WebHive
+# cd /var/www/WebHive
+# ln -s /mnt/WebHive/request
+# ln -s /mnt/WebHive/result
+# cd /var/www/WebHive/app/webroot
+# ln -s /mnt/WebHive/result
+
+
+⑦ブラウザよりユーザ登録を行う。
+http://xxxxxxxxxx/WebHive/users/add
+
+　Authority：１=全権限あり、2=参照専用ユーザ、3=登録HiveQLのみ実行可能
+　hive_host：hive serverの接続先サーバを指定
+　hive_port：hive serverの接続先ポートを指定
+
+　ユーザ登録後に「http://xxxxxxxxxx/WebHive」へアクセスして登録したユーザでログインできるのを確認する。
+　※初回ユーザ登録後は管理者以外でユーザ管理画面を表示できなようにapp.confのUSER_ADMINパラメータを1にして下さい。
+
+
+⑧クーロン設定
+HiveQLリクエストファイル、処理結果ファイルのパージ設定を行う。
+
+# crontab -e
+3 * * * * /var/www/WebHive/app/modules/log_delete.sh > /var/www/WebHive/app/modules/log_delete.out 2>&1
+※毎時３分にログパージスクリプトを起動する。
+
+⑨ログローテーション設定
+cakePHPログのローテーション設定を行う。
+
+# vi /etc/logrotate.d/cakephp
+/var/www/WebHive/app/tmp/logs/*.log {
+    daily
+    rotate 7
+    missingok
+    notifempty
+}
+
+
+【注意事項】
+WevHiveはhive serverが動作しているノードにインストールする必要があります。
+WevHiveを別ノードに導入するとプログレスバーが正常に動作しません。
+
