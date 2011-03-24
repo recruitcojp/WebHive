@@ -32,14 +32,24 @@ set fileencodings=utf-8,iso-2022-jp,ucs21e,ucs-2,cp932,euc-jp,latin1
 (4)apache設定
 # cd /etc/apache2/sites-available
 # vi default
-DocumentRoot(/var/www)ディレクティブ設定を変更する。
-  変更前）AllowOverride None
-  変更前）AllowOverride All
+/var/www/WebHiveディレクトリ設定を追加する。
+    Alias /WebHive "/var/www/WebHive"
+    <Directory /var/www/WebHive>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Order allow,deny
+        allow from all
+    </Directory>
 (5)apache再起動
 # /etc/init.d/apache2 restart
 
+④HTTPポート開放
+(1)HTTPポート解放
+「AWS Management Console」→EC2タグ→左タグ「Security Groups」→起動したインスタンスを選択→ポート開放
+(2)接続確認
+ブラウザより接続確認
 
-④MySQLの設定
+⑤MySQLの設定
 # mysql -u root -p
 mysql> create database <DB名>;
 mysql> GRANT ALL PRIVILEGES ON <DB名>.* to <ユーザ名>@localhost identified by '<パスワード>';
@@ -80,19 +90,19 @@ PRIMARY KEY (id)
 
 =================================================
 
-⑤hive server動作確認
+⑥hive server動作確認
 # php /var/www/WebHive/app/modules/test.php
 
 
-⑥WebHiveの導入
+⑦WebHiveの導入
 (1)WebHiveパッケージダウンロード
 https://github.com/recruitcojp/WebHive/
 
 (2)WebHiveインストール
 # cd /var/www
-# tar zxvf recruitcojp-WebHive-f711e9f.tar.gz
-# mv recruitcojp-WebHive-f711e9f WebHive
-# chown -R apache:apache WebHive
+# tar xvfz /home/hadoop/recruitcojp-WebHive-*******.tar.gz
+# mv recruitcojp-WebHive-******* WebHive
+# chown -R www-data:www-data WebHive
 
 (3)WebHiveの設定
 # cd /var/www/WebHive/app/config
@@ -125,7 +135,7 @@ https://github.com/recruitcojp/WebHive/
 # ln -s /mnt/WebHive/result
 
 
-⑦ブラウザよりユーザ登録を行う。
+⑧ブラウザよりユーザ登録を行う。
 http://xxxxxxxxxx/WebHive/users/add
 
 　Authority：１=全権限あり、2=参照専用ユーザ、3=登録HiveQLのみ実行可能
@@ -136,14 +146,14 @@ http://xxxxxxxxxx/WebHive/users/add
 　※初回ユーザ登録後は管理者以外でユーザ管理画面を表示できなようにapp.confのUSER_ADMINパラメータを1にして下さい。
 
 
-⑧クーロン設定
+⑨クーロン設定
 HiveQLリクエストファイル、処理結果ファイルのパージ設定を行う。
 
 # crontab -e
 3 * * * * /var/www/WebHive/app/modules/log_delete.sh > /var/www/WebHive/app/modules/log_delete.out 2>&1
 ※毎時３分にログパージスクリプトを起動する。
 
-⑨ログローテーション設定
+⑩ログローテーション設定
 cakePHPログのローテーション設定を行う。
 
 # vi /etc/logrotate.d/cakephp

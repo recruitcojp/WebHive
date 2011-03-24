@@ -75,7 +75,7 @@ PRIMARY KEY (id)
 
 ③Apacheの設定
 # vi httpd.conf
-    AllowOverride All		<==/var/www/htmlディレクティブの設定を変更(.htaccessを読み込める設定が必要）
+    AllowOverride All		<==.htaccessを読み込むように設定
 # /etc/init.d/httpd restart
 
 
@@ -85,8 +85,8 @@ https://github.com/recruitcojp/WebHive/
 
 (2)WebHiveインストール
 # cd /var/www/html
-# tar zxvf recruitcojp-WebHive-f711e9f.tar.gz
-# mv recruitcojp-WebHive-f711e9f WebHive
+# tar zxvf recruitcojp-WebHive-*******.tar.gz
+# mv recruitcojp-WebHive-******* WebHive
 # chown -R apache:apache WebHive
 
 (3)WebHiveの設定
