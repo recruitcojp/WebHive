@@ -6,7 +6,6 @@
 <link rel="stylesheet" type="text/css" href="/WebHive/ext/resources/css/ext-all.css" />
 <script type="text/javascript" src="/WebHive/ext/adapter/ext/ext-base.js"></script>
 <script type="text/javascript" src="/WebHive/ext/ext-all.js"></script>
-<script type="text/javascript" src="/WebHive/js/prototype.js"></script>
 <script type="text/javascript" src="/WebHive/js/config.js"></script>
 <script type="text/javascript" src="/WebHive/js/core.js"></script>
 <?php
@@ -28,7 +27,7 @@ if ( $user['User']['authority'] == 1 ){
 <div id="header" style="padding:3px;font-weight:normal;font-size:12px;color:#15428b;" align="right">
 <?php echo $user['User']['username']."さん"; ?>
 &nbsp; <a href="/WebHive/users/logout">LOGOUT</a>
-&nbsp; <a href="/WebHive/help" target="_blank">変更履歴</a>
+&nbsp; <a href="/WebHive/help" onclick="window.open('/WebHive/help','_blank','width=900,height=500,scrollbars=yes'); return false;">変更履歴</a>
 &nbsp;
 </div>
 <div id="displayPanel" ></div>  

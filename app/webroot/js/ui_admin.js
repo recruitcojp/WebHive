@@ -78,7 +78,7 @@ Ext.onReady(function() {
 	///////////////////////////////////////////////////////////////////
 	var inputPanel = new Ext.Panel({
 		layout:'fit',
-		height: 300,
+		height: 320,
 		layout:'border',
 		renderTo: 'displayPanel',
 		region: 'north',
@@ -114,6 +114,11 @@ Ext.onReady(function() {
 				width: 500,
 				height: 100
 			},{
+				id: 'inCompress',
+				xtype: 'checkbox',
+				fieldLabel: 'Compress',
+				checked: true
+			},{
 				id: 'inStageProgress',
 				xtype: 'progress',
 				fieldLabel: 'Stage(%)',
@@ -131,6 +136,9 @@ Ext.onReady(function() {
 			}],
 		}],
 		buttons: [{
+			id:'btnUpload',
+			text: config.ui.btnUpload,
+		},{
 			id:'btnSql',
 			text: config.ui.btnSql,
 		},{
@@ -222,6 +230,13 @@ Ext.onReady(function() {
 	});
 
 	///////////////////////////////////////////////////////////////////
+	//ファイルアップロード
+	///////////////////////////////////////////////////////////////////
+	Ext.get("btnUpload").on("click", function() {
+		window.open("/WebHive/uploads", "", "width=550,height=250");
+	});
+
+	///////////////////////////////////////////////////////////////////
 	//SQL管理画面ボタンクリック時の処理
 	///////////////////////////////////////////////////////////////////
 	Ext.get("btnSql").on("click", function() {
@@ -249,11 +264,17 @@ Ext.onReady(function() {
 	//実行ボタンクリック時の処理
 	///////////////////////////////////////////////////////////////////
 	Ext.get("btnRun").on("click", function() {
-		input = Ext.getCmp("inHiveQL").getValue();
-		if (input.trim() == "") {
+		inSQL = Ext.getCmp("inHiveQL").getValue();
+		inCMP = Ext.getCmp("inCompress").getValue();
+		if ( inCMP == true ){
+			inCMP=1;
+		}else{
+			inCMP=0;
+		}
+		if (inSQL.trim() == "") {
 			window.alert(config.msg.emptyInput);
 		} else {
-			var result = HiveExecute(input);
+			var result = HiveExecute(inSQL,inCMP);
 		}
 	});
 
@@ -261,11 +282,12 @@ Ext.onReady(function() {
 	//Explainボタンクリック時の処理
 	///////////////////////////////////////////////////////////////////
 	Ext.get("btnExplain").on("click", function() {
-		input = Ext.getCmp("inHiveQL").getValue();
-		if (input.trim() == "") {
+		inSQL = Ext.getCmp("inHiveQL").getValue();
+		inCMP = Ext.getCmp("inCompress").getValue();
+		if (inSQL.trim() == "") {
 			window.alert(config.msg.emptyInput);
 		} else {
-			var result = HiveExplain(input);
+			var result = HiveExplain(inSQL,inCMP);
 		}
 	});
 

@@ -38,7 +38,6 @@ WebHive配布アーカイブの中には、以下のソフトウェアが含ま�
 著作物に対する権利については、下記ＵＲＬをご覧ください。
 　・CakePHP 1.3.3 (http://cakephp.jp/)
 　・ExtJS 3.3.1 (http://www.extjs.co.jp/)
-　・Prototype.js 1.7 (http://www.prototypejs.org/)
 　・hive 0.6 PHP library
 
 ---------------------------------------------------------------------------

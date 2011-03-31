@@ -108,15 +108,11 @@ https://github.com/recruitcojp/WebHive/
 環境に合わせて設定を変更する。
 
 (4)ディレクトリ設定
-# mkdir /mnt/WebHive
-# mkdir /mnt/WebHive/request
-# mkdir /mnt/WebHive/result
-# chown -R www-data:www-data /mnt/WebHive
-# cd /var/www/WebHive
-# ln -s /mnt/WebHive/request
-# ln -s /mnt/WebHive/result
-# cd /var/www/WebHive/app/webroot
-# ln -s /mnt/WebHive/result
+# mkdir /var/www/html/WebHive/request
+# mkdir /var/www/html/WebHive/result
+# chown -R apache:apache /var/www/html/WebHive
+# cd /var/www/html/WebHive/app/webroot
+# ln -s /var/www/html/WebHive/result
 
 
 ⑤ブラウザよりユーザ登録を行う。
@@ -147,4 +143,15 @@ cakePHPログのローテーション設定を行う。
     missingok
     notifempty
 }
+
+⑧ファイルアップロード制限
+(1)phpの設定を変更
+# vi /etc/php.ini
+memory_limit 128M
+post_max_size 8M
+upload_max_filesize 5M
+
+
+【注意事項】
+・ファイルアップロードでエラーとなる場合はapacheやphpのサイズ制限を見直して下さい。
 

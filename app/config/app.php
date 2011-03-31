@@ -1,7 +1,7 @@
 <?php
 
 //全体定義
-define("APP_TITLE", "WebHive Ver.1.00");		//アプリバージョン
+define("APP_TITLE", "WebHive Ver.1.01");		//アプリバージョン
 define("USER_ADMIN", "0");				//0=未認証状態でユーザ管理画面表示を許可 1=admin権限でのみ表示可能
 
 //ディレクトリ定義
@@ -9,6 +9,7 @@ define("DIR_REQUEST", "/var/www/html/WebHive/request");
 define("DIR_RESULT", "/var/www/html/WebHive/result");
 define("DIR_HADOOP_TMP", "/tmp/hadoop");
 define("DIR_HIVE_LIB", "/var/www/html/WebHive/app/libs/php");
+define("DIR_ARCH_LIB", "/var/www/html/WebHive/app/libs");
 
 //コマンド定義
 define("CMD_HADOOP", "/usr/local/hadoop/bin/hadoop");

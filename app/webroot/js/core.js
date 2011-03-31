@@ -1,6 +1,13 @@
 var sv_reqid='';
 var sv_timerid='';
+var sv_cmp='';
+var sv_sql='';
+var sv_func='';
+var sv_str='';
 
+/////////////////////////////////////////////////////////
+// Windowを閉じる時の終了確認
+/////////////////////////////////////////////////////////
 window.onbeforeunload = function(event) {
 	if ( sv_timerid != "" ){
 		event = event || window.event;
@@ -9,33 +16,87 @@ window.onbeforeunload = function(event) {
 }
 
 /////////////////////////////////////////////////////////
+// Ajaxリクエスト失敗時の処理
+/////////////////////////////////////////////////////////
+function AjaxRequestFail(request,opt) {
+	window.alert("サーバリクエストが異常終了しました。");
+}
+
+/////////////////////////////////////////////////////////
+//プログレスバー設定
+/////////////////////////////////////////////////////////
+function SetProgress(stage,map,reduce) {
+	Ext.getCmp("inStageProgress").updateProgress(stage/100);
+	Ext.getCmp("inMapProgress").updateProgress(map/100);
+	Ext.getCmp("inRedProgress").updateProgress(reduce/100);
+}
+
+/////////////////////////////////////////////////////////
+//クエリ中の円マーク($)で囲まれた文字を置換し、置換文字列がなくなったらリクエストを発行
+/////////////////////////////////////////////////////////
+function CheckHiveQL(){
+	var deli="$";
+	var deli_len=deli.length;
+
+	pos1=sv_sql.indexOf(deli);
+	if ( pos1 == -1 ){
+		if ( sv_func == 'explain' ){ HiveExplain_req(); }
+		if ( sv_func == 'execute' ){ HiveExecute_req(); }
+		return;
+	}
+
+	pos2=sv_sql.indexOf(deli,pos1+deli_len);
+	if ( pos2 == -1 ){
+		if ( sv_func == 'explain' ){ HiveExplain_req(); }
+		if ( sv_func == 'execute' ){ HiveExecute_req(); }
+		return;
+	}
+
+	sv_str=sv_sql.substring(pos1,pos2+deli_len);
+	if ( sv_str.length <= (deli_len * 2) ){
+		Ext.MessageBox.alert("HiveQLエラー", "置換文字列指定が不正です。クエリを見直して下さい。");
+		return;
+	}
+
+	Ext.MessageBox.prompt("HiveQL置換", "「"+sv_str+"」の置換文字列を指定してください。", CheckHiveQL_fin);
+}
+
+function CheckHiveQL_fin(btn,text){
+	if (btn != "ok") { return; }
+	sv_sql=sv_sql.replace(sv_str,text);
+	CheckHiveQL();
+}
+
+/////////////////////////////////////////////////////////
 // HiveQL登録
 /////////////////////////////////////////////////////////
-// リクエスト
-function HiveRegister(targetTitle,targetSql) {
-	if ( targetTitle == null ) { return; }
-	if ( targetSql == null ) { return; }
+function HiveRegister(inTitle,inSql) {
+	if ( inTitle == null ) { return; }
+	if ( inSql == null ) { return; }
 
-	var parameter="u=" + userid + "&t=" + targetTitle + "&q=" + targetSql;
-	var a = new Ajax.Request(
-		"/WebHive/apis/register",
-		{"method": "post", parameters:parameter, onComplete: HiveRegister_fin}
-	);
+	Ext.Ajax.request({
+		url:'/WebHive/apis/register',
+		method:'POST',
+		params:{
+			u:userid,
+			t:inTitle,
+			q:inSql
+		},
+		success:HiveRegister_fin,
+		failure:AjaxRequestFail
+	});
 	TextOutFunc("INF:HiveQL Register");
 }
 
-// 応答
-function HiveRegister_fin(request) {
-	var json = request.responseText;
-	var result = eval("("+json+")");
-	var res=result["result"];
+function HiveRegister_fin(result,opt) {
+	var res = Ext.decode(result.responseText);
 	var obj = new MyEvent();
 
-	if ( res == "ok" ){
+	if ( res.result == "ok" ){
 		TextOutFunc("INF:HiveQL Register OK");
 		obj.fireEvent('HiveReloadEvent');
 	}else{
-		TextOutFunc("ERR:HiveQL Register error(" + res + ")");
+		TextOutFunc("ERR:HiveQL Register error(" + res.result + ")");
 	}
 
 }
@@ -43,30 +104,31 @@ function HiveRegister_fin(request) {
 /////////////////////////////////////////////////////////
 // HiveQL削除
 /////////////////////////////////////////////////////////
-// リクエスト
 function HiveDelete(sqlID) {
 	if ( sqlID == null ) { return; }
 
-	var parameter="u=" + userid + "&id=" + sqlID;
-	var a = new Ajax.Request(
-		"/WebHive/apis/delete",
-		{"method": "post", parameters:parameter, onComplete: HiveDelete_fin}
-	);
+	Ext.Ajax.request({
+		url:'/WebHive/apis/delete',
+		method:'POST',
+		params:{
+			u:userid,
+			id:sqlID
+		},
+		success:HiveDelete_fin,
+		failure:AjaxRequestFail
+	});
 	TextOutFunc("INF:HiveQL delete (ID=" + sqlID + ")");
 }
 
-// 応答
-function HiveDelete_fin(request) {
-	var json = request.responseText;
-	var result = eval("("+json+")");
-	var res=result["result"];
+function HiveDelete_fin(result,opt) {
+	var res = Ext.decode(result.responseText);
 	var obj = new MyEvent();
 
-	if ( res == "ok" ){
+	if ( res.result == "ok" ){
 		TextOutFunc("INF:HiveQL Delete OK");
 		obj.fireEvent('HiveReloadEvent');
 	}else{
-		TextOutFunc("ERR:HiveQL Delete error(" + res + ")");
+		TextOutFunc("ERR:HiveQL Delete error(" + res.result + ")");
 	}
 
 }
@@ -74,52 +136,73 @@ function HiveDelete_fin(request) {
 /////////////////////////////////////////////////////////
 // HiveQLのexplain
 /////////////////////////////////////////////////////////
-function HiveExplain(targetSql) {
-	if ( targetSql == null ) { return; }
-
+function HiveExplain(inSql,inCmp) {
+	if ( inSql == null ) { return; }
 	if ( sv_timerid != '' ){
 		TextOutFunc("WAR:HiveQL Running");
 		return;
 	}
-
-	var parameter="u=" + userid + "&q=" + targetSql;
-	var a = new Ajax.Request(
-		"/WebHive/apis/explain",
-		{"method": "post", parameters:parameter, onComplete:HiveExplain_fin}
-	);
+	sv_sql=inSql;
+	sv_cmp=inCmp;
+	sv_func='explain';
+	CheckHiveQL();
 }
 
-function HiveExplain_fin(request) {
-	var json = request.responseText;
-	var result = eval("("+json+")");
-	var res=result["result"];
-	var id=result["id"];
+function HiveExplain_req() {
 
-	if ( res == "unknown" || res == "check" || res == "ok" ){
-		sv_reqid=id;
+	Ext.Ajax.request({
+		url:'/WebHive/apis/explain',
+		method:'POST',
+		params:{
+			u:userid,
+			c:sv_cmp,
+			q:sv_sql
+		},
+		success:HiveExplain_fin,
+		failure:AjaxRequestFail
+	});
+
+}
+
+function HiveExplain_fin(result,opt) {
+	var res = Ext.decode(result.responseText);
+	if ( res.result == "unknown" || res.result == "check" || res.result == "ok" ){
+		sv_reqid=res.id;
 		HiveDownload("exp");
 		return;
 	}
-	TextOutFunc("ERR:HiveQL Explain error(" + res + ")");
+	TextOutFunc("ERR:HiveQL Explain error(" + res.result + ")");
 }
 
 /////////////////////////////////////////////////////////
 // HiveQL実行
 /////////////////////////////////////////////////////////
-// リクエスト
-function HiveExecute(targetSql) {
-	if ( targetSql == null ) { return; }
-
+function HiveExecute(inSql,inCmp) {
+	if ( inSql == null ) { return; }
 	if ( sv_timerid != '' ){
 		TextOutFunc("WAR:HiveQL Running");
 		return;
 	}
+	sv_sql=inSql;
+	sv_cmp=inCmp;
+	sv_func='execute';
+	CheckHiveQL();
+}
 
-	var parameter="u=" + userid + "&q=" + targetSql;
-	var a = new Ajax.Request(
-		"/WebHive/apis/explain",
-		{"method": "post", parameters:parameter, onComplete:HiveExecute_fin}
-	);
+function HiveExecute_req() {
+
+	Ext.Ajax.request({
+		url:'/WebHive/apis/explain',
+		method:'POST',
+		params:{
+			u:userid,
+			c:sv_cmp,
+			q:sv_sql
+		},
+		success:HiveExecute_fin,
+		failure:AjaxRequestFail
+	});
+
 	Ext.getCmp("outTab").setActiveTab("outConsole");
 	Ext.getCmp("outExplain").setValue("");
 	Ext.getCmp("outDataView").setValue("");
@@ -128,71 +211,69 @@ function HiveExecute(targetSql) {
 	SetProgress(0,0,0);
 }
 
-function HiveExecute_fin(request) {
-	var json = request.responseText;
-	var result = eval("("+json+")");
-	var res=result["result"];
-	var id=result["id"];
+function HiveExecute_fin(result,opt) {
+	var res = Ext.decode(result.responseText);
 
-	if ( res == "unknown" ){
+	if ( res.result == "unknown" ){
 		var ck=window.confirm('HiveQLを実行しますか？')
 		if ( ck == false ){ return; }
-		HiveRequest(id);
+		HiveRequest(res.id);
 		return;
 	}
-	if ( res == "check" ){
-		var msg=result["msg"];
-		var ck=window.confirm('HiveQLを実行しますか？\n' + msg)
+	if ( res.result == "check" ){
+		var ck=window.confirm('HiveQLを実行しますか？\n' + res.msg)
 		if ( ck == false ){ return; }
-		HiveRequest(id);
+		HiveRequest(res.id);
 		return;
 	}
-	if ( res == "ok" ){
-		HiveRequest(id);
+	if ( res.result == "ok" ){
+		HiveRequest(res.id);
 		return;
 	}
-	TextOutFunc("ERR:HiveQL Request error(" + res + ")");
+	TextOutFunc("ERR:HiveQL Request error(" + res.result + ")");
 	SetProgress(100,100,100);
 }
 
 /////////////////////////////////////////////////////////
 // Hiveリクエスト発行
 /////////////////////////////////////////////////////////
-// リクエスト
 function HiveRequest(id) {
-	var parameter="u=" + userid + "&id=" + id;
-	var a = new Ajax.Request(
-		"/WebHive/apis/request",
-		{"method": "post", parameters:parameter, onComplete:HiveRequest_fin}
-	);
+
+	Ext.Ajax.request({
+		url:'/WebHive/apis/request',
+		method:'POST',
+		params:{
+			u:userid,
+			id:id
+		},
+		success:HiveRequest_fin,
+		failure:AjaxRequestFail
+	});
+
 	SetProgress(1,0,0);
 	sv_timerid=1;
 }
 
-// 応答
-function HiveRequest_fin(request) {
-	var json = request.responseText;
-	var result = eval("("+json+")");
-	var res=result["result"];
-	var id=result["id"];
+function HiveRequest_fin(result,opt) {
+	var res = Ext.decode(result.responseText);
 
-	if ( res == "ok" ){
-		TextOutFunc("INF:HiveQL Request-ID：" + id);
+	if ( res.result == "ok" ){
+		TextOutFunc("INF:HiveQL Request-ID：" + res.id);
 		TextOutFunc("INF:<a href=\"javascript:void();\" onclick=\"HiveJobCancel()\">HiveQL Request Cancel<a>");
-		sv_timerid=setTimeout("HiveProcCheck(\"" + id + "\")",5000);
-		sv_reqid=id;
+		sv_timerid=setTimeout("HiveProcCheck(\"" + res.id + "\")",5000);
+		sv_reqid=res.id;
 		return;
 	}
-	if ( res == "fin" ){
+	if ( res.result == "fin" ){
 		TextOutFunc("INF:HiveQL normal end");
-		TextOutFunc("INF:<a href=\"/WebHive/result/" + id + ".csv\" target=\"_blank\">HiveQL Result<a>");
+		TextOutFunc("INF:<a href=\"/WebHive/result/" + res.filnm + "\" target=\"_blank\">HiveQL Result<a>");
 		SetProgress(100,100,100);
-		sv_reqid=id;
+		sv_reqid=res.id;
 		sv_timerid='';
 		return;
 	}
 
-	TextOutFunc("ERR:HiveQL Request error(" + res + ")");
+	TextOutFunc("ERR:HiveQL Request error(" + res.result + ")");
 	SetProgress(100,100,100);
 	sv_timerid='';
 }
@@ -201,39 +282,37 @@ function HiveRequest_fin(request) {
 // Hive処理状況確認
 /////////////////////////////////////////////////////////
 function HiveProcCheck(id) {
-	var parameter="u=" + userid + "&id=" + id;
-	var a = new Ajax.Request(
-		"/WebHive/apis/check",
-		{"method": "post", parameters:parameter, onComplete:HiveProcCheck_fin}
-	);
+	Ext.Ajax.request({
+		url:'/WebHive/apis/check',
+		method:'POST',
+		params:{
+			u:userid,
+			id:id
+		},
+		success:HiveProcCheck_fin,
+		failure:AjaxRequestFail
+	});
 }
 
-// Hive処理完了チェック
-function HiveProcCheck_fin(request) {
-	var json = request.responseText;
-	var result = eval("("+json+")");
-	var res=result["result"];
-	var id=result["id"];
-	var stage=result["stage"];
-	var map=result["map"];
-	var reduce=result["reduce"];
+function HiveProcCheck_fin(result,opt) {
+	var res = Ext.decode(result.responseText);
 
-	if ( res == "ok" ){
+	if ( res.result == "ok" ){
 		TextOutFunc("INF:HiveQL normal end");
-		TextOutFunc("INF:<a href=\"/WebHive/result/" + id + ".csv\" target=\"_blank\">HiveQL Result<a>");
+		TextOutFunc("INF:<a href=\"/WebHive/result/" + res.filnm + "\" target=\"_blank\">HiveQL Result<a>");
 		SetProgress(100,100,100);
 		sv_timerid='';
 		return;
 	}
-	if ( res == "progress" ){
-		SetProgress(stage,map,reduce);
+	if ( res.result == "progress" ){
+		SetProgress(res.stage,res.map,res.reduce);
 		if ( sv_timerid != "" ){
-			sv_timerid=setTimeout("HiveProcCheck(\"" + id + "\")",5000);
+			sv_timerid=setTimeout("HiveProcCheck(\"" + res.id + "\")",5000);
 		}
 		return;
 	}
 
-	TextOutFunc("ERR:HiveQL execute error(" + res + ")");
+	TextOutFunc("ERR:HiveQL execute error(" + res.result + ")");
 	SetProgress(100,100,100);
 	sv_timerid='';
 }
@@ -243,21 +322,26 @@ function HiveProcCheck_fin(request) {
 /////////////////////////////////////////////////////////
 function HiveJobCancel() {
 	if ( sv_timerid == "" ){ return; }
-	var parameter="u=" + userid + "&id=" + sv_reqid;
-	var a = new Ajax.Request(
-		"/WebHive/apis/jobcancel",
-		{"method": "post", parameters:parameter, onComplete:HiveJobCancel_fin}
-	);
+
+	Ext.Ajax.request({
+		url:'/WebHive/apis/jobcancel',
+		method:'POST',
+		params:{
+			u:userid,
+			id:sv_reqid
+		},
+		success:HiveJobCancel_fin,
+		failure:AjaxRequestFail
+	});
+
 	TextOutFunc("INF:HiveQL Job Cancel (ID=" + sv_reqid + ")");
 	clearTimeout(sv_timerid);
 	sv_timerid='';
 }
 
-function HiveJobCancel_fin(request) {
-	var json = request.responseText;
-	var result = eval("("+json+")");
-	var res=result["result"];
-	TextOutFunc("INF:HiveQL Job Cancel (" + res + ")");
+function HiveJobCancel_fin(result,opt) {
+	var res = Ext.decode(result.responseText);
+	TextOutFunc("INF:HiveQL Job Cancel (" + res.result + ")");
 	SetProgress(100,100,100);
 }
 
@@ -274,36 +358,36 @@ function HiveProcCheck_Clear() {
 /////////////////////////////////////////////////////////
 // Hive処理結果ダウンロード
 /////////////////////////////////////////////////////////
-//リクエスト
 function HiveDownload(dtype) {
 	if (  sv_reqid == "" ){ return; }
 
-	var parameter="u=" + userid + "&id=" + sv_reqid + "&d=" + dtype;
-	var a = new Ajax.Request(
-		"/WebHive/apis/download",
-	   {"method": "post", parameters:parameter, onComplete:HiveDownload_fin}
-	);
+	Ext.Ajax.request({
+		url:'/WebHive/apis/download',
+		method:'POST',
+		params:{
+			u:userid,
+			id:sv_reqid,
+			d:dtype
+		},
+		success:HiveDownload_fin,
+		failure:AjaxRequestFail
+	});
 }
 
-// 応答
-function HiveDownload_fin(request) {
-	var json = request.responseText;
-	var result = eval("("+json+")");
-	var res=result["result"];
-	var dtype=result["dtype"];
-	var datas=result["datas"];
+function HiveDownload_fin(result,opt) {
+	var res = Ext.decode(result.responseText);
 
-	if ( res != "ok" ){ return; }
+	if ( res.result != "ok" ){ return; }
 
 	var msg="";
-	for (var i = 0; i < datas.length; i++) {
-		msg += datas[i].data + "\n";
+	for (var i = 0; i < res.datas.length; i++) {
+		msg += res.datas[i].data + "\n";
 	}
 
-	if ( dtype == "exp" ){
+	if ( res.dtype == "exp" ){
 		Ext.getCmp("outTab").setActiveTab("outExplain");
 		Ext.getCmp("outExplain").setValue(msg);
-	}else if ( dtype == "out" ){
+	}else if ( res.dtype == "out" ){
 		Ext.getCmp("outTab").setActiveTab("outOutput");
 		Ext.getCmp("outOutput").setValue(msg);
 	}else{
@@ -329,11 +413,3 @@ function TextOutFunc(msg) {
 	}
 }
 
-/////////////////////////////////////////////////////////
-//プログレスバー設定
-/////////////////////////////////////////////////////////
-function SetProgress(stage,map,reduce) {
-	Ext.getCmp("inStageProgress").updateProgress(stage/100);
-	Ext.getCmp("inMapProgress").updateProgress(map/100);
-	Ext.getCmp("inRedProgress").updateProgress(reduce/100);
-}

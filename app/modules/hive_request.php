@@ -6,10 +6,15 @@
 define('ROOT', dirname(dirname(__FILE__)));
 require_once(ROOT."/config/app.php");
 
+//hiveアクセス用のPHPライブラリ
 $GLOBALS['THRIFT_ROOT'] = DIR_HIVE_LIB;
 require_once $GLOBALS['THRIFT_ROOT'] . '/packages/hive_service/ThriftHive.php';
 require_once $GLOBALS['THRIFT_ROOT'] . '/transport/TSocket.php';
 require_once $GLOBALS['THRIFT_ROOT'] . '/protocol/TBinaryProtocol.php';
+
+//ファイルアーカイブ用
+set_include_path(get_include_path() .PATH_SEPARATOR. DIR_ARCH_LIB); 
+require_once "File/Archive.php";
 
 ///////////////////////////////////////////////////////////////////
 // 初期化処理
@@ -25,11 +30,19 @@ $hive_port=$argv[3];
 
 //ファイル名
 $hql_file = DIR_REQUEST."/${hive_id}.hql";
+$cmp_file = DIR_REQUEST."/${hive_id}.cmp";
 $out_file = DIR_RESULT."/${hive_id}.out";
-$csv_file = DIR_RESULT."/${hive_id}.csv";
 $exp_file = DIR_RESULT."/${hive_id}.exp";
 $tmp_file = DIR_RESULT."/${hive_id}.tmp";
 $pid_file = DIR_RESULT."/${hive_id}.pid";
+
+if ( file_exists($cmp_file) ){
+	$csv_file = DIR_RESULT."/${hive_id}.csv.zip";
+	$cmp_flg=1;
+}else{
+	$csv_file = DIR_RESULT."/${hive_id}.csv";
+	$cmp_flg=0;
+}
 
 ///////////////////////////////////////////////////////////////////
 //pidファイル作成
@@ -55,7 +68,6 @@ while(!feof($fp)){
 	$u_query.=$data;
 }
 fclose($fp);
-//print "INF:$u_query\n";
 
 ///////////////////////////////////////////////////////////////////
 // Hive接続
@@ -86,9 +98,14 @@ print "INF:QUERYID=$queryid\n";
 // メイン処理
 ///////////////////////////////////////////////////////////////////
 $shell_ret=0;
-if ( !($fp=fopen($tmp_file,"w")) ){
-	print "ERR:file open error($tmp_file)\n";
-	exit(1);
+if ( $cmp_flg == 0 ){
+	if ( !($fp=fopen($tmp_file,"w")) ){
+		print "ERR:file open error($tmp_file)\n";
+		exit(1);
+	}
+}else{
+	$fp = File_Archive::toArchive($tmp_file, File_Archive::toFiles(),"zip");
+	$fp->newFile("${hive_id}.csv");
 }
 
 //hiveの実行
@@ -99,15 +116,19 @@ for ($i=0; $i<count($arr); $i++){
 	if ( $arr[$i] == "" ){ continue; }
 	print "INF:$arr[$i]\n";
 	if ( eregi("^ls",$arr[$i]) ){
-		if ( hadoop_exec($fp,$arr[$i]) != 0 ){ $shell_ret=1; break; }
+		if ( hadoop_exec($cmp_flg,$fp,$arr[$i]) != 0 ){ $shell_ret=1; break; }
 	}else{
-		if ( hive_exec($fp,$client,$arr[$i]) != 0 ){ $shell_ret=1; break; }
+		if ( hive_exec($cmp_flg,$fp,$client,$arr[$i]) != 0 ){ $shell_ret=1; break; }
 	}
 	print "INF:QEND\n";
 }
 
 $transport->close();
-fclose($fp);
+if ( $cmp_flg == 0 ){
+	fclose($fp);
+}else{
+	$fp->close();
+}
 
 //rename
 rename($tmp_file,$csv_file);
@@ -127,7 +148,7 @@ if ( $shell_ret == 0 ){
 ///////////////////////////////////////////////////////////////////
 // HiveQL実行
 ///////////////////////////////////////////////////////////////////
-function hive_exec($fp,$client,$sql) {
+function hive_exec($cmp_flg,$fp,$client,$sql) {
 
 	// HiveQL実行
 	try{
@@ -153,10 +174,14 @@ function hive_exec($fp,$client,$sql) {
 		foreach ($arr as $row){
 			$row.="\n";
 			$row=mb_convert_encoding($row,"SJIS","UTF-8");
-			$ret=fputs($fp,$row);
-			if ( $ret <= 0 ){
-				print "ERR:file out error\n";
-				return 1;
+			if ( $cmp_flg == 0 ){
+				$ret=fputs($fp,$row);
+				if ( $ret <= 0 ){
+					print "ERR:file out error\n";
+					return 1;
+				}
+			}else{
+				$fp->writeData($row);
 			}
 		}
 	}
@@ -166,7 +191,7 @@ function hive_exec($fp,$client,$sql) {
 ///////////////////////////////////////////////////////////////////
 // hadoopコマンド実行
 ///////////////////////////////////////////////////////////////////
-function hadoop_exec($fp,$cmd) {
+function hadoop_exec($cmp_flg,$fp,$cmd) {
 
 	//コマンド実行
 	$hadoop_cmd=CMD_HADOOP." fs \-$cmd";
@@ -176,10 +201,14 @@ function hadoop_exec($fp,$cmd) {
 	
 	//結果出力
 	for ($i=0; $i<count($result); $i++){
-		$ret=fputs($fp,"${result[$i]}\n");
-		if ( $ret <= 0 ){
-			print "ERR:file out error\n";
-			return 1;
+		if ( $cmp_flg == 0 ){
+			$ret=fputs($fp,"${result[$i]}\n");
+			if ( $ret <= 0 ){
+				print "ERR:file out error\n";
+				return 1;
+			}
+		}else{
+			$fp->writeData("${result[$i]}\n");
 		}
 	}
 

@@ -96,6 +96,7 @@ class ApisController extends AppController {
 		//パラメータ解析
 		$u_userid=$this->params['form']['u'];
 		$u_query=$this->params['form']['q'];
+		$u_compress=$this->params['form']['c'];
 		if ( $u_userid == "" or $u_query == "" ){
 			$this->set("result" , array("result" => "parameter error"));
 			return;
@@ -124,16 +125,27 @@ class ApisController extends AppController {
 
 		//リクエストID発行
 		$u_id=sprintf("%s_%05d",date("YmdHis"),getmypid());
-		$req_file=DIR_REQUEST."/${u_id}.hql";
+		$hql_file=DIR_REQUEST."/${u_id}.hql";
+		$cmp_file=DIR_REQUEST."/${u_id}.cmp";
 		$exp_file=DIR_RESULT."/${u_id}.exp";
 
 		//リクエストファイル作成
-		if ( !($fp=fopen($req_file,"w")) ){
+		if ( !($fp=fopen($hql_file,"w")) ){
 			$this->set("result" , array("result" => "file open error", "id" => "$u_id"));
 			return;
 		}
 		fputs($fp,"$u_query");
 		fclose($fp);
+
+		//結果ファイルを圧縮する場合
+		if ( $u_compress == 1 ){
+			if ( !($fp=fopen($cmp_file,"w")) ){
+				$this->set("result" , array("result" => "file open error", "id" => "$u_id"));
+				return;
+			}
+			fputs($fp,"compress");
+			fclose($fp);
+		}
 
 		// explainによるHiveQLチェック
 		$cmd=CMD_EXPLAIN_SHELL . " $u_id $hive_host $hive_port";
@@ -179,19 +191,21 @@ class ApisController extends AppController {
 			return;
 		}
 
-		$req_file=DIR_REQUEST."/${u_id}.hql";
+		$hql_file=DIR_REQUEST."/${u_id}.hql";
+		$cmp_file=DIR_REQUEST."/${u_id}.cmp";
 		$out_file=DIR_RESULT."/${u_id}.out";
 		$csv_file=DIR_RESULT."/${u_id}.csv";
+		$zip_file=DIR_RESULT."/${u_id}.csv.zip";
 
 		//SQL文取得
 		$u_query="";
-		if ( !($fp=fopen($req_file,"r")) ){
+		if ( !($fp=fopen($hql_file,"r")) ){
 			$this->set("result" , array("result" => "file open error"));
 			return;
 		}
 		while(!feof($fp)){
 			$data = fgets($fp, 512);
-			$u_query .= $data;
+			$u_query.=$data;
 		}
 		fclose($fp);
 
@@ -237,7 +251,11 @@ class ApisController extends AppController {
 		$this->log("CMD=$cmd => $retval",LOG_DEBUG);
 		if ( $retval == 0 ){
 			if ( file_exists($csv_file) ){
-				$this->set("result" , array("result" => "fin", "id" => "$u_id"));
+				$this->set("result" , array("result" => "fin", "id" => "$u_id", "filnm" => "${u_id}.csv"));
+				return;
+			}
+			if ( file_exists($zip_file) ){
+				$this->set("result" , array("result" => "fin", "id" => "$u_id", "filnm" => "${u_id}.csv.zip"));
 				return;
 			}
 		}
@@ -263,6 +281,7 @@ class ApisController extends AppController {
 		}
 
 		$csv_file=DIR_RESULT."/${u_id}.csv";
+		$zip_file=DIR_RESULT."/${u_id}.csv.zip";
 		$out_file=DIR_RESULT."/${u_id}.out";
 		$exp_file=DIR_RESULT."/${u_id}.exp";
 		$pid_file=DIR_RESULT."/${u_id}.pid";
@@ -280,7 +299,7 @@ class ApisController extends AppController {
 			return;
 		}
 
-		//pidファイルチェック
+		//子プロセス異常終了チェック
 		if ( file_exists($pid_file) ){
 			$fp=fopen($pid_file,"r");
 			$pid = fgets($fp, 1024);
@@ -295,7 +314,17 @@ class ApisController extends AppController {
 
 		//結果ファイルチェック
 		if ( file_exists($csv_file) ){
-			$this->set("result" , array("result" => "ok", "id" => "$u_id"));
+			$this->set("result" , array("result" => "ok", "id" => "$u_id", "filnm" => "${u_id}.csv"));
+			return;
+		}
+		if ( file_exists($zip_file) ){
+			$this->set("result" , array("result" => "ok", "id" => "$u_id", "filnm" => "${u_id}.csv.zip"));
+			return;
+		}
+
+		//処理完了したがなんらかの原因で結果ファイルが作成されなかった
+		if ( !file_exists($pid_file) ){
+			$this->set("result" , array("result" => "process error", "id" => "$u_id"));
 			return;
 		}
 
@@ -307,6 +336,7 @@ class ApisController extends AppController {
 	//HiveQL実行結果のダウンロード
 	///////////////////////////////////////////////////////////////////
 	function download() {
+
 		//ajaxリクエスト以外
 		if( !$this->RequestHandler->isAjax() ) {
 			$this->set("result" , array("result" => "not ajax"));
@@ -322,11 +352,18 @@ class ApisController extends AppController {
 			return;
 		}
 
-		$read_file=DIR_RESULT."/${u_id}.${u_dtype}";
-
 		//ファイルの中身を返す
+		$read_file=DIR_RESULT."/${u_id}.${u_dtype}";
 		if ( file_exists($read_file) ){
-			$datas=CommonComponent::FileRead($read_file);
+			$datas=CommonComponent::FileRead($read_file,$u_dtype);
+			$this->set("result" , array("result" => "ok", "datas" => $datas, "dtype" => $u_dtype));
+			return;
+		}
+
+		//zipファイルがある場合
+		$read_file=DIR_RESULT."/${u_id}.${u_dtype}.zip";
+		if ( file_exists($read_file) ){
+			$datas=CommonComponent::ZipFileRead($read_file,$u_dtype);
 			$this->set("result" , array("result" => "ok", "datas" => $datas, "dtype" => $u_dtype));
 			return;
 		}
@@ -392,7 +429,6 @@ class ApisController extends AppController {
 
 		$this->set("result" , array("result" => "ok"));
 	}
-
 
 	///////////////////////////////////////////////////////////////////
 	//クラス処理前に呼ばれる関数

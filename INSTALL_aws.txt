@@ -146,15 +146,19 @@ http://xxxxxxxxxx/WebHive/users/add
 　※初回ユーザ登録後は管理者以外でユーザ管理画面を表示できなようにapp.confのUSER_ADMINパラメータを1にして下さい。
 
 
-⑨クーロン設定
-HiveQLリクエストファイル、処理結果ファイルのパージ設定を行う。
+⑨HiveQLリクエストファイル、処理結果ファイルのパージ設定を行う。
+(1) ログ出力先パスを変更する。
+# vi /var/www/WebHive/app/modules/log_delete.sh
+変更前) LOG_DIR="/var/www/html/WebHive"
+変更後) LOG_DIR="/var/www/WebHive"
 
+(2)クーロン設定を変更する。
 # crontab -e
 3 * * * * /var/www/WebHive/app/modules/log_delete.sh > /var/www/WebHive/app/modules/log_delete.out 2>&1
 ※毎時３分にログパージスクリプトを起動する。
 
-⑩ログローテーション設定
-cakePHPログのローテーション設定を行う。
+
+⑩cakePHPログのローテーション設定を行う。
 
 # vi /etc/logrotate.d/cakephp
 /var/www/WebHive/app/tmp/logs/*.log {
@@ -166,6 +170,6 @@ cakePHPログのローテーション設定を行う。
 
 
 【注意事項】
-WevHiveはhive serverが動作しているノードにインストールする必要があります。
-WevHiveを別ノードに導入するとプログレスバーが正常に動作しません。
+・WevHiveをhive server稼働ノード以外にインストールするとプログレスバーが正常に動作しません。
+・ファイルアップロードでエラーとなる場合はapacheやphpのサイズ制限を見直して下さい。
 

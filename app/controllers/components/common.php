@@ -4,7 +4,7 @@ class CommonComponent extends Object {
 	///////////////////////////////////////////////////////////////////
 	//HiveQL結果ファイルの内容を返す
 	///////////////////////////////////////////////////////////////////
-	function FileRead($csv_file) {
+	function FileRead($csv_file,$dtype) {
 		$datas=array();
 		$line=0;
 
@@ -13,13 +13,59 @@ class CommonComponent extends Object {
 		}
 		while(!feof($fp)){
 			$w = fgets($fp, 512);
-			$w=mb_convert_encoding(rtrim($w),"UTF-8","SJIS");
+			if ( $dtype == "csv" ){
+				$w=mb_convert_encoding(rtrim($w),"UTF-8","SJIS");
+			}else{
+				$w=rtrim($w);
+			}
 			$datas[]=array("data"=>$w);
 			$line++;
 			if ( $line >= 1000 ){ break; }
 		}
 		fclose($fp);
 		return $datas;
+	}
+
+	///////////////////////////////////////////////////////////////////
+	//圧縮HiveQL結果ファイルの内容を返す
+	///////////////////////////////////////////////////////////////////
+	function ZipFileRead($zip_file,$dtype) {
+		$datas=array();
+		$line=0;
+
+		//ライブラリ
+		set_include_path(get_include_path() .PATH_SEPARATOR. DIR_ARCH_LIB);
+		require_once "File/Archive.php";
+
+		//圧縮ファイル読み込み
+		$arr=array();
+		$source = File_Archive::read( "$zip_file/" );
+		while( true ){
+			$w=CommonComponent::ZipFileReadBuffer($source);
+			if ( $w == "" ){ break; }
+			if ( $dtype == "csv" ){
+				$w=mb_convert_encoding(rtrim($w),"UTF-8","SJIS");
+			}else{
+				$w=rtrim($w);
+			}
+			$datas[]=array("data"=>$w);
+			$line++;
+			if ( $line >= 1000 ){ break; }
+		}
+		$source->close();
+
+		return $datas;
+	}
+
+	function ZipFileReadBuffer($source){
+		$retval="";
+
+		while ( true ){
+			$ret=$source->getData( 1 );
+			if ( $ret == "" ){ return $retval; }
+			if ( $ret == "\n" ){ return $retval; }
+			$retval.=$ret;
+		}
 	}
 
 	///////////////////////////////////////////////////////////////////

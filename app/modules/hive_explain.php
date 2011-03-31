@@ -6,6 +6,7 @@
 define('ROOT', dirname(dirname(__FILE__)));
 require_once(ROOT."/config/app.php");
 
+//hiveアクセス用のPHPライブラリ
 $GLOBALS['THRIFT_ROOT'] = DIR_HIVE_LIB;
 require_once $GLOBALS['THRIFT_ROOT'] . '/packages/hive_service/ThriftHive.php';
 require_once $GLOBALS['THRIFT_ROOT'] . '/transport/TSocket.php';
@@ -98,7 +99,6 @@ function hive_exec($fp,$client,$sql) {
 	while( ($arr=$client->fetchN(10000)) ){
 		foreach ($arr as $row){
 			$row.="\n";
-			$row=mb_convert_encoding($row,"SJIS","UTF-8");
 			$ret=fputs($fp,$row);
 			if ( $ret <= 0 ){
 				$ret=fputs($fp,"ERR:file out error\n");

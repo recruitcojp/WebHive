@@ -54,11 +54,13 @@ log_delete_em(){
 #通常パージ
 #######################################################################
 log_delete ${LOG_DIR}/request ${KEEP_DAY} "*.hql"
+log_delete ${LOG_DIR}/request ${KEEP_DAY} "*.cmp"
 log_delete ${LOG_DIR}/result  ${KEEP_DAY} "*.out"
 log_delete ${LOG_DIR}/result  ${KEEP_DAY} "*.csv"
 log_delete ${LOG_DIR}/result  ${KEEP_DAY} "*.pid"
 log_delete ${LOG_DIR}/result  ${KEEP_DAY} "*.tmp"
 log_delete ${LOG_DIR}/result  ${KEEP_DAY} "*.exp"
+log_delete ${LOG_DIR}/result  ${KEEP_DAY} "*.zip"
 
 #######################################################################
 #緊急パージ
@@ -69,6 +71,7 @@ if (( ${dsk_used} >= ${EMPURGE_DSK_THR} )); then
 	print_msg "INF:緊急パージ処理(${EMPURGE_DSK_OVR}KB以上のログを削除します)"
 
 	log_delete_em ${LOG_DIR}/result ${EMPURGE_DSK_OVR} "*.csv"
+	log_delete_em ${LOG_DIR}/result ${EMPURGE_DSK_OVR} "*.zip"
 	log_delete_em ${LOG_DIR}/result ${EMPURGE_DSK_OVR} "*.tmp"
 fi
 
