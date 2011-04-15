@@ -1,2 +1,0 @@
-1387849964
-a:18:{i:0;s:14:"BUCKETING_COLS";i:1;s:7:"COLUMNS";i:2;s:3:"DBS";i:3;s:10:"PARTITIONS";i:4;s:14:"PARTITION_KEYS";i:5;s:18:"PARTITION_KEY_VALS";i:6;s:16:"PARTITION_PARAMS";i:7;s:3:"SDS";i:8;s:9:"SD_PARAMS";i:9;s:14:"SEQUENCE_TABLE";i:10;s:6:"SERDES";i:11;s:12:"SERDE_PARAMS";i:12;s:9:"SORT_COLS";i:13;s:12:"TABLE_PARAMS";i:14;s:4:"TBLS";i:15;s:13:"cake_sessions";i:16;s:7:"hiveqls";i:17;s:5:"users";}

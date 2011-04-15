@@ -9,10 +9,10 @@
 
 【導入手順】
 
-①日本時間に変更
+1. 日本時間に変更する。
 # cp -p /usr/share/zoneinfo/Japan /etc/localtime
 
-②viでUTF-8を利用
+2. viでUTF-8を利用できるように変更する。
 # export LANG=ja_JP.UTF-8
 # apt-get install vim
 # update-alternatives --config editor                                 ・・/usr/bin/vim.basicに変更
@@ -20,16 +20,16 @@
 set encoding=utf-8
 set fileencodings=utf-8,iso-2022-jp,ucs21e,ucs-2,cp932,euc-jp,latin1
 
-③apacheインストール
-(1)apache導入
+3. apacheをインストールする。
+3.1. apache導入
 # apt-get install apache2
 # cd /etc/apache2
-(2)モジュール導入
+3.2. モジュール導入
 # apt-get install libapache2-mod-php5
-(3)rewite設定有効化
+3.3. rewite設定有効化
 # cd /etc/apache2/mods-enabled
 # ln -s ../mods-available/rewrite.load
-(4)apache設定
+3.4. apache設定
 # cd /etc/apache2/sites-available
 # vi default
 /var/www/WebHiveディレクトリ設定を追加する。
@@ -40,30 +40,35 @@ set fileencodings=utf-8,iso-2022-jp,ucs21e,ucs-2,cp932,euc-jp,latin1
         Order allow,deny
         allow from all
     </Directory>
-(5)apache再起動
+3.5. apache再起動
 # /etc/init.d/apache2 restart
 
-④HTTPポート開放
-(1)HTTPポート解放
+4. 外部からWEBアクセスできるようにHTTPポートを解放する。
+4.1. HTTPポート解放
 「AWS Management Console」→EC2タグ→左タグ「Security Groups」→起動したインスタンスを選択→ポート開放
-(2)接続確認
+4.2. 接続確認
 ブラウザより接続確認
 
-⑤MySQLの設定
+5. MySQLを設定する。
+(1)MySQLの起動と自動起動設定
+# /etc/init.d/mysqld start
+# chkconfig mysqld on
+# chkconfig --list mysqld
+
+(2)データベース作成とユーザ登録／権限付与
 # mysql -u root -p
 mysql> create database <DB名>;
 mysql> GRANT ALL PRIVILEGES ON <DB名>.* to <ユーザ名>@localhost identified by '<パスワード>';
 mysql> flush privileges;
 
-作成したDBに接続できるのを確認する。
+(3)作成したDBに接続できるのを確認する。
 # mysql -u <ユーザ名> -p<パスワード> <DB名>
 
-作成したDBで以下のcreate文を実行する。
-=================================================
+(4)作成したDBで以下のcreate文を実行する。
 CREATE TABLE cake_sessions (
   id varchar(255) NOT NULL default '',
   data text,
-  expires int(11) default NULL,
+  expires int default NULL,
   PRIMARY KEY  (id)
 );
 
@@ -88,24 +93,24 @@ modified        datetime default null,
 PRIMARY KEY (id)
 );
 
-=================================================
 
-⑥hive server動作確認
+6. hive serverの動作を確認する。
 # php /var/www/WebHive/app/modules/test.php
 
 
-⑦WebHiveの導入
-(1)WebHiveパッケージダウンロード
+7. WebHiveを導入する。
+7.1. WebHiveパッケージダウンロード
 https://github.com/recruitcojp/WebHive/
 
-(2)WebHiveインストール
+7.2. WebHiveインストール
 # cd /var/www
 # tar xvfz /home/hadoop/recruitcojp-WebHive-*******.tar.gz
 # mv recruitcojp-WebHive-******* WebHive
 # chown -R www-data:www-data WebHive
 
-(3)WebHiveの設定
+7.3. WebHiveのデータベース接続設定
 # cd /var/www/WebHive/app/config
+# cp database.php.mysql database.php
 # vi database.php
 環境に合わせてmysqlのDB名、ユーザ名、パスワードを変更する。
         var $default = array(
@@ -119,11 +124,12 @@ https://github.com/recruitcojp/WebHive/
         );
 
 
+7.4. WebHiveの設定を行う。
+# cd /var/www/WebHive/app/config
 # cp app.php.aws app.php
 # vi app.php
-環境に合わせて設定を変更する。
 
-(4)ディレクトリ設定
+7.5. ディレクトリの設定を行う。
 # mkdir /mnt/WebHive
 # mkdir /mnt/WebHive/request
 # mkdir /mnt/WebHive/result
@@ -135,7 +141,7 @@ https://github.com/recruitcojp/WebHive/
 # ln -s /mnt/WebHive/result
 
 
-⑧ブラウザよりユーザ登録を行う。
+8. ブラウザよりユーザ登録を行う。
 http://xxxxxxxxxx/WebHive/users/add
 
 　Authority：１=全権限あり、2=参照専用ユーザ、3=登録HiveQLのみ実行可能
@@ -146,20 +152,19 @@ http://xxxxxxxxxx/WebHive/users/add
 　※初回ユーザ登録後は管理者以外でユーザ管理画面を表示できなようにapp.confのUSER_ADMINパラメータを1にして下さい。
 
 
-⑨HiveQLリクエストファイル、処理結果ファイルのパージ設定を行う。
-(1) ログ出力先パスを変更する。
+9. HiveQLリクエストファイル、処理結果ファイルのパージ設定を行う。
+9.1. ログ出力先パスを変更する。
 # vi /var/www/WebHive/app/modules/log_delete.sh
 変更前) LOG_DIR="/var/www/html/WebHive"
 変更後) LOG_DIR="/var/www/WebHive"
 
-(2)クーロン設定を変更する。
+9.2. クーロン設定を追加する。
 # crontab -e
-3 * * * * /var/www/WebHive/app/modules/log_delete.sh > /var/www/WebHive/app/modules/log_delete.out 2>&1
+3 * * * * /var/www/WebHive/app/modules/log_delete.sh > /var/www/html/WebHive/app/tmp/logs/log_delete.out 2>&1
 ※毎時３分にログパージスクリプトを起動する。
 
 
-⑩cakePHPログのローテーション設定を行う。
-
+10. cakePHPログのローテーション設定を行う。
 # vi /etc/logrotate.d/cakephp
 /var/www/WebHive/app/tmp/logs/*.log {
     daily
@@ -167,6 +172,12 @@ http://xxxxxxxxxx/WebHive/users/add
     missingok
     notifempty
 }
+
+11. ファイルアップロード制限を設定する。
+# vi /etc/php.ini
+memory_limit 128M
+post_max_size 8M
+upload_max_filesize 5M
 
 
 【注意事項】

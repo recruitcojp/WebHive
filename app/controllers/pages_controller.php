@@ -16,7 +16,11 @@ class PagesController extends AppController {
 	function beforeRender() {
 		$this->layout='base';
 		$this->user=$this->Auth->user();
-		$this->set('user', $this->user);
+		$user=$this->user;
+		if ( empty($user['User']['authority']) ){
+			$user['User']['authority']=LDAP_AUTH;
+		}
+		$this->set('user', $user);
 	}
 }
 ?>

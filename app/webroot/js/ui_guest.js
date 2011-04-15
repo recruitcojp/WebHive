@@ -63,12 +63,6 @@ Ext.onReady(function() {
 			rowdblclick:function(grid, row, e){
 				var record = grid.getStore().getAt(row);
 				handleSelect(record);
-			},
-			rowcontextmenu:function(grid, row, e){
-				grid.getSelectionModel().selectRow(row);
-				e.stopEvent();
-				var record = grid.getStore().getAt(row);
-				handleDelete(record);
 			}
 		}
 	});
@@ -107,34 +101,43 @@ Ext.onReady(function() {
 				xtype: 'textfield',
 				fieldLabel: 'Title',
 				readOnly: true,
-				width: 500
+				width: '100%'
 			},{
 				id: 'inHiveQL',
 				xtype: 'textarea',
 				fieldLabel: 'HiveQL',
 				readOnly: true,
-				width: 500,
+				width: '100%',
 				height: 100
-			},{
-				id: 'inCompress',
-				xtype: 'checkbox',
-				fieldLabel: 'Compress',
-				checked: true
-			},{
+			},
+			new Ext.form.CheckboxGroup({
+				xtype:'fieldset',
+				fieldLabel: 'Output',
+				defaultType: 'checkbox',
+				layout: 'column',
+				style:'margin:1px;',
+				style: 'font-family: \"Courier New\",Courier,monospace;font-weight:normal;font-size:12px;',
+				defaults: {columnWidth: '.32', border: false },
+				items: [
+					{id:'inCompress', name:'inCompress', boxLabel:'zip圧縮', checked: true },
+					{id:'inColumn', name:'inColumn', boxLabel:'カラム名の有無', checked: true },
+				]
+			})
+			,{
 				id: 'inStageProgress',
 				xtype: 'progress',
 				fieldLabel: 'Stage(%)',
-				width: 500
+				width: '90%'
 			},{
 				id: 'inMapProgress',
 				xtype: 'progress',
 				fieldLabel: 'Map(%)',
-				width: 500
+				width: '90%'
 			},{
 				id: 'inRedProgress',
 				xtype: 'progress',
 				fieldLabel: 'Reduce(%)',
-				width: 500
+				width: '90%'
 			}],
 		}],
 		buttons: [{
@@ -228,15 +231,13 @@ Ext.onReady(function() {
 	Ext.get("btnRun").on("click", function() {
 		inSQL = Ext.getCmp("inHiveQL").getValue();
 		inCMP = Ext.getCmp("inCompress").getValue();
-		if ( inCMP == true ){
-			inCMP=1;
-		}else{
-			inCMP=0;
-		}
+		inCOL = Ext.getCmp("inColumn").getValue();
+		if ( inCMP == true ){ inCMP="Z"; }else{ inCMP="N"; }
+		if ( inCOL == true ){ inCOL="C"; }else{ inCOL="N"; }
 		if (inSQL.trim() == "") {
-			window.alert(config.msg.emptyInput);
+			Ext.Msg.alert(config.msg.checkInput, config.msg.emptyQuery);
 		} else {
-			var result = HiveExecute(inSQL,inCMP);
+			var result = HiveExecute(inSQL,inCMP,inCOL);
 		}
 	});
 
@@ -246,10 +247,13 @@ Ext.onReady(function() {
 	Ext.get("btnExplain").on("click", function() {
 		inSQL = Ext.getCmp("inHiveQL").getValue();
 		inCMP = Ext.getCmp("inCompress").getValue();
+		inCOL = Ext.getCmp("inColumn").getValue();
+		if ( inCMP == true ){ inCMP="Z"; }else{ inCMP="N"; }
+		if ( inCOL == true ){ inCOL="C"; }else{ inCOL="N"; }
 		if (inSQL.trim() == "") {
-			window.alert(config.msg.emptyInput);
+			Ext.Msg.alert(config.msg.checkInput, config.msg.emptyQuery);
 		} else {
-			var result = HiveExplain(inSQL,inCMP);
+			var result = HiveExplain(inSQL,inCMP,inCOL);
 		}
 	});
 
@@ -284,19 +288,6 @@ Ext.onReady(function() {
 		if (tab.id == 'outExplain') { HiveDownload("exp"); }
 		if (tab.id == 'outOutput') { HiveDownload("out"); }
 		if (tab.id == 'outDataView') { HiveDownload("csv"); }
-	}
-
-	///////////////////////////////////////////////////////////////////
-	//SQL選択画面の右クリック
-	///////////////////////////////////////////////////////////////////
-	function handleDelete(record){
-		if(!record) {return;};
-		var record = grid.selModel.getSelected();
-		var ck=window.confirm('「' + record.get('title') + '」を削除しますか？')
-		if ( ck == true ){
-			HiveDelete(record.get('id'));
-			store.load();
-		}
 	}
 
 });

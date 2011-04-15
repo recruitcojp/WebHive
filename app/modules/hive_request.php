@@ -20,28 +20,28 @@ require_once "File/Archive.php";
 // 初期化処理
 ///////////////////////////////////////////////////////////////////
 // 引数チェック
-if ( empty($argv[1]) or empty($argv[2]) or empty($argv[3]) ){
+if ( empty($argv[1]) or empty($argv[2]) or empty($argv[3]) or empty($argv[4]) or empty($argv[5]) or empty($argv[6]) ){
 	print "ERR:parameter error\n";
 	exit(1);
 }
 $hive_id=$argv[1];
 $hive_host=$argv[2];
 $hive_port=$argv[3];
+$hive_uid=$argv[4];
+$hive_compress=$argv[5];
+$hive_column=$argv[6];
 
 //ファイル名
-$hql_file = DIR_REQUEST."/${hive_id}.hql";
-$cmp_file = DIR_REQUEST."/${hive_id}.cmp";
-$out_file = DIR_RESULT."/${hive_id}.out";
-$exp_file = DIR_RESULT."/${hive_id}.exp";
-$tmp_file = DIR_RESULT."/${hive_id}.tmp";
-$pid_file = DIR_RESULT."/${hive_id}.pid";
+$hql_file = DIR_REQUEST."/${hive_uid}/${hive_id}.hql";
+$out_file = DIR_RESULT."/${hive_uid}/${hive_id}.out";
+$exp_file = DIR_RESULT."/${hive_uid}/${hive_id}.exp";
+$tmp_file = DIR_RESULT."/${hive_uid}/${hive_id}.tmp";
+$pid_file = DIR_RESULT."/${hive_uid}/${hive_id}.pid";
 
-if ( file_exists($cmp_file) ){
-	$csv_file = DIR_RESULT."/${hive_id}.csv.zip";
-	$cmp_flg=1;
+if ( $hive_compress == "Z" ){
+	$csv_file = DIR_RESULT."/${hive_uid}/${hive_id}.csv.zip";
 }else{
-	$csv_file = DIR_RESULT."/${hive_id}.csv";
-	$cmp_flg=0;
+	$csv_file = DIR_RESULT."/${hive_uid}/${hive_id}.csv";
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -98,14 +98,14 @@ print "INF:QUERYID=$queryid\n";
 // メイン処理
 ///////////////////////////////////////////////////////////////////
 $shell_ret=0;
-if ( $cmp_flg == 0 ){
+if ( $hive_compress == "Z" ){
+	$fp = File_Archive::toArchive($tmp_file, File_Archive::toFiles(),"zip");
+	$fp->newFile("${hive_id}.csv");
+}else{
 	if ( !($fp=fopen($tmp_file,"w")) ){
 		print "ERR:file open error($tmp_file)\n";
 		exit(1);
 	}
-}else{
-	$fp = File_Archive::toArchive($tmp_file, File_Archive::toFiles(),"zip");
-	$fp->newFile("${hive_id}.csv");
 }
 
 //hiveの実行
@@ -116,18 +116,18 @@ for ($i=0; $i<count($arr); $i++){
 	if ( $arr[$i] == "" ){ continue; }
 	print "INF:$arr[$i]\n";
 	if ( eregi("^ls",$arr[$i]) ){
-		if ( hadoop_exec($cmp_flg,$fp,$arr[$i]) != 0 ){ $shell_ret=1; break; }
+		if ( hadoop_exec($fp,$arr[$i]) != 0 ){ $shell_ret=1; break; }
 	}else{
-		if ( hive_exec($cmp_flg,$fp,$client,$arr[$i]) != 0 ){ $shell_ret=1; break; }
+		if ( hive_exec($fp,$client,$arr[$i]) != 0 ){ $shell_ret=1; break; }
 	}
 	print "INF:QEND\n";
 }
 
 $transport->close();
-if ( $cmp_flg == 0 ){
-	fclose($fp);
-}else{
+if ( $hive_compress == "Z" ){
 	$fp->close();
+}else{
+	fclose($fp);
 }
 
 //rename
@@ -148,7 +148,9 @@ if ( $shell_ret == 0 ){
 ///////////////////////////////////////////////////////////////////
 // HiveQL実行
 ///////////////////////////////////////////////////////////////////
-function hive_exec($cmp_flg,$fp,$client,$sql) {
+function hive_exec($fp,$client,$sql) {
+	global $hive_compress;
+	global $hive_column;
 
 	// HiveQL実行
 	try{
@@ -162,6 +164,27 @@ function hive_exec($cmp_flg,$fp,$client,$sql) {
 	$queryid=$res->queries[0]->queryId;
 	print "INF:queryid=$queryid\n";
 
+	//カラム表示
+	if ( $hive_column == "C" ){
+		$outStr="";
+		$res=$client->getSchema();
+		foreach ($res->fieldSchemas as $key => $val) {
+			$nm=$res->fieldSchemas[$key]->name;
+			if ( $outStr != "" ){ $outStr.="\t"; }
+			$outStr.=$nm;
+		}
+		$outStr.="\n";
+		if ( $hive_compress == "Z" ){
+			$fp->writeData($outStr);
+		}else{
+			$ret=fputs($fp,$outStr);
+			if ( $ret <= 0 ){
+				print "ERR:file out error\n";
+				return 1;
+			}
+		}
+	}
+
 	//FETCHループ
 	$line=0;
 	while( ($arr=$client->fetchN(10000)) ){
@@ -174,14 +197,14 @@ function hive_exec($cmp_flg,$fp,$client,$sql) {
 		foreach ($arr as $row){
 			$row.="\n";
 			$row=mb_convert_encoding($row,"SJIS","UTF-8");
-			if ( $cmp_flg == 0 ){
+			if ( $hive_compress == "Z" ){
+				$fp->writeData($row);
+			}else{
 				$ret=fputs($fp,$row);
 				if ( $ret <= 0 ){
 					print "ERR:file out error\n";
 					return 1;
 				}
-			}else{
-				$fp->writeData($row);
 			}
 		}
 	}
@@ -191,7 +214,9 @@ function hive_exec($cmp_flg,$fp,$client,$sql) {
 ///////////////////////////////////////////////////////////////////
 // hadoopコマンド実行
 ///////////////////////////////////////////////////////////////////
-function hadoop_exec($cmp_flg,$fp,$cmd) {
+function hadoop_exec($fp,$cmd) {
+	global $hive_compress;
+	global $hive_column;
 
 	//コマンド実行
 	$hadoop_cmd=CMD_HADOOP." fs \-$cmd";
@@ -201,14 +226,14 @@ function hadoop_exec($cmp_flg,$fp,$cmd) {
 	
 	//結果出力
 	for ($i=0; $i<count($result); $i++){
-		if ( $cmp_flg == 0 ){
+		if ( $hive_compress == "Z" ){
+			$fp->writeData("${result[$i]}\n");
+		}else{
 			$ret=fputs($fp,"${result[$i]}\n");
 			if ( $ret <= 0 ){
 				print "ERR:file out error\n";
 				return 1;
 			}
-		}else{
-			$fp->writeData("${result[$i]}\n");
 		}
 	}
 

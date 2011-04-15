@@ -5,8 +5,7 @@ class UsersController extends AppController {
 	var $scaffold;
 
 	//ログイン処理
-	function login() {
-	}
+	function login() { }
 
 	//ログアウト処理
 	function logout() {

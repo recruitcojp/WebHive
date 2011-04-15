@@ -17,17 +17,18 @@ require_once $GLOBALS['THRIFT_ROOT'] . '/protocol/TBinaryProtocol.php';
 //初期処理
 ///////////////////////////////////////////////////////////////////
 // 引数チェック
-if ( empty($argv[1]) or empty($argv[2]) or empty($argv[3]) ){
+if ( empty($argv[1]) or empty($argv[2]) or empty($argv[3]) or empty($argv[4]) ){
 	print "ERR:parameter error\n";
 	exit(1);
 }
 $hive_id=$argv[1];
 $hive_host=$argv[2];
 $hive_port=$argv[3];
+$hive_uid=$argv[4];
 
 //ファイル名
-$hql_file = DIR_REQUEST."/${hive_id}.hql";
-$exp_file = DIR_RESULT."/${hive_id}.exp";
+$hql_file = DIR_REQUEST."/${hive_uid}/${hive_id}.hql";
+$exp_file = DIR_RESULT."/${hive_uid}/${hive_id}.exp";
 
 ///////////////////////////////////////////////////////////////////
 // SQL文読み込み

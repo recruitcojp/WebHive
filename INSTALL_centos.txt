@@ -1,4 +1,4 @@
-【動作環境】
+【はじめに】
 下記環境にて動作確認を実施しました。
 
 　CentOS5.5
@@ -7,42 +7,62 @@
   MySQL 5.0
 
 【導入手順】
-①下記モジュールが未導入の場合はインストールして下さい。
-# rpm -qa | grep php
-php-pear-1.4.9-6.el5
-php-common-5.1.6-27.el5
-php-cli-5.1.6-27.el5
-php-pdo-5.1.6-27.el5
-php-mysql-5.1.6-27.el5
-php-gd-5.1.6-27.el5
-php-5.1.6-27.el5
-php-mbstring-5.1.6-27.el5
-php-devel-5.1.6-27.el5
+1. WebHiveの実行に必要なパッケージを導入する。
+下記パッケージが未導入の場合はインストールして下さい。
 
-# rpm -qa | grep mysql
-php-mysql-5.1.6-27.el5
+【phpパッケージ】
+php-5.1.6-27.el5_5.3
+php-cli-5.1.6-27.el5_5.3
+php-devel-5.1.6-27.el5_5.3
+php-mbstring-5.1.6-27.el5_5.3
+php-pdo-5.1.6-27.el5_5.3
+php-common-5.1.6-27.el5_5.3
+php-gd-5.1.6-27.el5_5.3
+php-pear-1.4.9-6.el5
+php-ldap-5.1.6-27.el5_5.3 (*)LDAPを利用する場合に必要
+
+【apacheパッケージ】
+httpd-2.2.3-43.el5.centos
+
+【MySQLパッケージ(WebHiveリポジトリにMySQLを利用する場合)】
+php-mysql-5.1.6-27.el5_5.3
 mysql-server-5.0.77-4.el5_4.2
 mysql-5.0.77-4.el5_4.2
 
-# rpm -qa | grep httpd
-httpd-2.2.3-43.el5.centos
+【PostgreSQLパッケージ(WebHiveリポジトリにPostgreSQLを利用する場合)】
+php-pgsql-5.1.6-27.el5_5.3
+postgresql-8.1.23-1.el5_6.1
+postgresql-server-8.1.23-1.el5_6.1
+postgresql-libs-8.1.23-1.el5_6.1
 
-# yum install <rpm名>
+1.1 パッケージ導入方法(例)
+# yum install yum install php php-pear php-mbstring
+# yum install yum install php-mysql
+# yum install yum install postgresql-libs postgresql postgresql-server php-pgsql
+# yum install yum install php-ldap
 
-※CentOS5.5標準インストールであれば"yum install php php-mysql php-pear php-mbstring"を実施。
+1.2 パッケージ導入確認方法(例)
+# rpm -qa <パッケージ名>
 
 
-②MySQLの設定
+2. WebHiveリポジトリの設定を行う。
+
+2.1. WebHiveリポジトリにMySQLを利用する場合
+(1)MySQLの起動と自動起動設定
+# /etc/init.d/mysqld start
+# chkconfig mysqld on
+# chkconfig --list mysqld
+
+(2)データベース作成とユーザ登録／権限付与
 # mysql -u root -p
 mysql> create database <DB名>;
 mysql> GRANT ALL PRIVILEGES ON <DB名>.* to <ユーザ名>@localhost identified by '<パスワード>';
 mysql> flush privileges;
 
-作成したDBに接続できるのを確認する。
+(3)作成したDBに接続できるのを確認する。
 # mysql -u <ユーザ名> -p<パスワード> <DB名>
 
-作成したDBで以下のcreate文を実行する。
-=================================================
+(4)作成したDBで以下のcreate文を実行する。
 CREATE TABLE cake_sessions (
   id varchar(255) NOT NULL default '',
   data text,
@@ -71,28 +91,98 @@ modified        datetime default null,
 PRIMARY KEY (id)
 );
 
-=================================================
+2.2. WebHiveリポジトリにPostgreSQLを利用する場合
 
-③Apacheの設定
+(1)PostgreSQLのデータベースクラスタ初期化
+# su - postgres
+# initdb -D /var/lib/pgsql/data --encoding=UTF8 --no-locale
+
+(2)PostgreSQLの起動と自動起動設定
+# /etc/init.d/postgresql start
+# chkconfig postgresql on
+# chkconfig --list postgresql
+
+(3)ユーザ作成
+# createuser -S -R -D -P <ユーザ名>
+ -S：スーパーユーザーになれません。
+ -R：新しいロールの作成を禁止します。
+ -D：データーベースの作成を禁止します。
+ -P：パスワードのプロンプトを表示します。
+# psql -c "select usename from pg_user"
+
+(4)DB作成
+# createdb -O <ユーザ名> <DB名>
+# psql -l
+
+(5)接続設定
+/var/lib/pgsql/data/pg_hba.conf
+前)host    all         all         127.0.0.1/32         trust
+後)host    <DB名>      <ユーザ名>  127.0.0.1/32         md5
+# /etc/init.d/postgresql restart
+
+(6)作成したDBに接続できるのを確認する。
+# psql -W -h localhost -p 5432 -U <ユーザ名> <DB名>
+xxx=> select current_schema();			・・・カレントスキーマが正しいのを確認
+
+(7)テーブルとシーケンスの作成
+CREATE SEQUENCE users_id_seq;
+CREATE SEQUENCE hiveqls_id_seq;
+
+CREATE TABLE cake_sessions (
+  id varchar(255) NOT NULL default '',
+  data text,
+  expires int default NULL,
+  PRIMARY KEY  (id)
+);
+
+CREATE TABLE users (
+id    		int default nextval('users_id_seq'),
+username        varchar(50),
+password        varchar(50),
+authority               int,
+hive_host       varchar(50),
+hive_port       int,
+created         timestamp default null,
+modified        timestamp default null,
+PRIMARY KEY (id)
+);
+
+CREATE TABLE hiveqls (
+id              int default nextval('hiveqls_id_seq'),
+title           varchar(256),
+query           varchar(2048),
+created         timestamp default null,
+modified        timestamp default null,
+PRIMARY KEY (id)
+);
+
+
+3. Apacheの設定を変更する。
 # vi httpd.conf
     AllowOverride All		<==.htaccessを読み込むように設定
 # /etc/init.d/httpd restart
 
+4. hive serverの動作を確認する。
+# php /var/www/WebHive/app/modules/test.php
 
-④WebHiveの導入
-(1)WebHiveパッケージダウンロード
+
+5. WebHiveを導入する。
+5.1. WebHiveパッケージダウンロード
 https://github.com/recruitcojp/WebHive/
 
-(2)WebHiveインストール
+5.2. WebHiveインストール
 # cd /var/www/html
 # tar zxvf recruitcojp-WebHive-*******.tar.gz
 # mv recruitcojp-WebHive-******* WebHive
 # chown -R apache:apache WebHive
 
-(3)WebHiveの設定
+5.3. WebHiveのデータベース接続設定
+環境に合わせてドライバ、DB名、ユーザ名、パスワードを変更する。
+
+(1)WebHiveリポジトリがMySQLの場合
 # cd /var/www/html/WebHive/app/config
+# cp database.php.mysql database.php
 # vi database.php
-環境に合わせてmysqlのDB名、ユーザ名、パスワードを変更する。
         var $default = array(
                 'driver' => 'mysql',
                 'persistent' => false,
@@ -103,11 +193,28 @@ https://github.com/recruitcojp/WebHive/
                 'prefix' => '',
         );
 
+(2)WebHiveリポジトリがPostgreSQLの場合
+# cd /var/www/html/WebHive/app/config
+# cp database.php.postgresql database.php
+# vi database.php
+        var $default = array(
+                'connect' => 'pg_connect',
+                'driver' => 'postgres',
+                'persistent' => false,
+                'host' => 'localhost',
+                'port' => 'ポート番号',
+                'login' => 'ユーザ名',
+                'password' => 'パスワード',
+                'database' => 'DB名',
+                'encoding'=>'utf-8',
+                'prefix' => '',
+        );
 
+5.4. WebHiveの設定を行う。
+# cd /var/www/html/WebHive/app/config
 # vi app.php
-環境に合わせて設定を変更する。
 
-(4)ディレクトリ設定
+5.5. ディレクトリの設定を行う。
 # mkdir /var/www/html/WebHive/request
 # mkdir /var/www/html/WebHive/result
 # chown -R apache:apache /var/www/html/WebHive
@@ -115,7 +222,7 @@ https://github.com/recruitcojp/WebHive/
 # ln -s /var/www/html/WebHive/result
 
 
-⑤ブラウザよりユーザ登録を行う。
+6. ブラウザよりユーザ登録を行う。
 http://xxxxxxxxxx/WebHive/users/add
 
 　Authority：１=全権限あり、2=参照専用ユーザ、3=登録HiveQLのみ実行可能
@@ -126,16 +233,12 @@ http://xxxxxxxxxx/WebHive/users/add
 　※初回ユーザ登録後は管理者以外でユーザ管理画面を表示できなようにapp.confのUSER_ADMINパラメータを1にして下さい。
 
 
-⑥クーロン設定
-HiveQLリクエストファイル、処理結果ファイルのパージ設定を行う。
-
+7.  HiveQLリクエストファイル、処理結果ファイルのパージ設定を行う。
 # crontab -e
-3 * * * * /var/www/html/WebHive/app/modules/log_delete.sh > /var/www/html/WebHive/app/modules/log_delete.out 2>&1
+3 * * * * /var/www/html/WebHive/app/modules/log_delete.sh > /var/www/html/WebHive/app/tmp/logs/log_delete.out 2>&1
 ※毎時３分にログパージスクリプトを起動する。
 
-⑦ログローテーション設定
-cakePHPログのローテーション設定を行う。
-
+8. cakePHPログのローテーション設定を行う。
 # vi /etc/logrotate.d/cakephp
 /var/www/html/WebHive/app/tmp/logs/*.log {
     daily
@@ -144,8 +247,7 @@ cakePHPログのローテーション設定を行う。
     notifempty
 }
 
-⑧ファイルアップロード制限
-(1)phpの設定を変更
+9. ファイルアップロード制限を設定する。
 # vi /etc/php.ini
 memory_limit 128M
 post_max_size 8M
@@ -154,4 +256,5 @@ upload_max_filesize 5M
 
 【注意事項】
 ・ファイルアップロードでエラーとなる場合はapacheやphpのサイズ制限を見直して下さい。
+・HiveSQLの実行でメモリ不足のエラーが発生した場合はPHPパラメータの見直しを行ってください。
 

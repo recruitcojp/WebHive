@@ -2,6 +2,22 @@
 class CommonComponent extends Object {
 
 	///////////////////////////////////////////////////////////////////
+	//ディレクトリ作成
+	///////////////////////////////////////////////////////////////////
+	function MakeDirectory($u_userid){
+		$d1=DIR_REQUEST."/${u_userid}";
+		if ( !is_dir($d1) ){
+			if ( !mkdir($d1) ){ return 1; }
+		}
+
+		$d2=DIR_RESULT."/${u_userid}";
+		if ( !is_dir($d2) ){
+			if ( !mkdir($d2) ){ return 1; }
+		}
+		return 0;
+	}
+
+	///////////////////////////////////////////////////////////////////
 	//HiveQL結果ファイルの内容を返す
 	///////////////////////////////////////////////////////////////////
 	function FileRead($csv_file,$dtype) {
@@ -69,6 +85,39 @@ class CommonComponent extends Object {
 	}
 
 	///////////////////////////////////////////////////////////////////
+	//Hive前処理（クエリ実行権限チェック、Hive接続先取得）
+	///////////////////////////////////////////////////////////////////
+	function HiveBefore($u_userid,$u_query){
+
+		//ユーザ情報検索
+                $users=$this->Users->find('all', array('conditions' => "username='$u_userid'"));
+
+		//ユーザ情報設定
+		if ( count($users) == 0 ){
+			$u_auth=LDAP_AUTH;
+			$u_host="";
+			$u_port="";
+		}else{
+			$u_auth=$users[0]['Users']['authority'];
+			$u_host=$users[0]['Users']['hive_host'];
+			$u_port=$users[0]['Users']['hive_port'];
+		}
+
+		//権限チェック
+                if ( CommonComponent::CheckSQLAuth($u_auth,$u_query) != 0 ){
+                        return array(1,"","");
+                        return;
+                }
+
+                //接続先Hive Server設定
+                $hive_host=HIVE_HOST;
+                $hive_port=HIVE_PORT;
+                if ( $u_host != "" ){ $hive_host=$u_host; }
+                if ( $u_port != "" ){ $hive_port=$u_port; }
+		return array(0,$hive_host,$hive_port);
+	}
+
+	///////////////////////////////////////////////////////////////////
 	//SQLの実行権限チェック
 	///////////////////////////////////////////////////////////////////
 	function CheckSQLAuth($user_auth, $u_query) {
@@ -100,12 +149,12 @@ class CommonComponent extends Object {
 	///////////////////////////////////////////////////////////////////
 	//HiveQLのexplainチェック
 	///////////////////////////////////////////////////////////////////
-	function CheckSQLexplain($u_id) {
+	function CheckSQLexplain($u_userid,$u_id) {
 		$stage_cnt=0;
 		$mapreduce_cnt=0;
 		$line_cnt=0;
 
-		$exp_file=DIR_RESULT."/${u_id}.exp";
+		$exp_file=DIR_RESULT."/${u_userid}/${u_id}.exp";
 
 		//予想時間
 		if ( !($fp=fopen($exp_file,"r")) ){ return array(-1,-1,-1); }
@@ -119,7 +168,6 @@ class CommonComponent extends Object {
 
 		return array($stage_cnt,$mapreduce_cnt,$line_cnt);
 	}
-
 
 
 	///////////////////////////////////////////////////////////////////

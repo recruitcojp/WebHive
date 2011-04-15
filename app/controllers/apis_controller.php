@@ -96,38 +96,26 @@ class ApisController extends AppController {
 		//パラメータ解析
 		$u_userid=$this->params['form']['u'];
 		$u_query=$this->params['form']['q'];
-		$u_compress=$this->params['form']['c'];
 		if ( $u_userid == "" or $u_query == "" ){
 			$this->set("result" , array("result" => "parameter error"));
 			return;
 		}
 
-		//権限チェック
-		$users=$this->Users->find('all', array('conditions' => "username='$u_userid'"));
-		if ( count($users) == 0 ){
-			$this->set("result" , array("result" => "user no data"));
-			return;
-		}
-		if ( CommonComponent::CheckSQLAuth($users[0]['Users']['authority'],$u_query) != 0 ){
+		//事前処理
+		list($res,$hive_host,$hive_port)=CommonComponent::HiveBefore($u_userid,$u_query);	
+		if ( $res != 0 ){
 			$this->set("result" , array("result" => "permission error"));
 			return;
 		}
 
-		//接続先Hive Server設定
-		$hive_host=HIVE_HOST;
-		$hive_port=HIVE_PORT;
-		if ( $users[0]['Users']['hive_host'] != "" ){
-			 $hive_host=$users[0]['Users']['hive_host'];
-		}
-		if ( $users[0]['Users']['hive_port'] != "" ){
-			 $hive_port=$users[0]['Users']['hive_port'];
-		}
-
 		//リクエストID発行
+		if ( CommonComponent::MakeDirectory($u_userid) != 0 ){
+			$this->set("result" , array("result" => "create directory error"));
+			return;
+		}
 		$u_id=sprintf("%s_%05d",date("YmdHis"),getmypid());
-		$hql_file=DIR_REQUEST."/${u_id}.hql";
-		$cmp_file=DIR_REQUEST."/${u_id}.cmp";
-		$exp_file=DIR_RESULT."/${u_id}.exp";
+		$hql_file=DIR_REQUEST."/${u_userid}/${u_id}.hql";
+		$exp_file=DIR_RESULT."/${u_userid}/${u_id}.exp";
 
 		//リクエストファイル作成
 		if ( !($fp=fopen($hql_file,"w")) ){
@@ -137,18 +125,8 @@ class ApisController extends AppController {
 		fputs($fp,"$u_query");
 		fclose($fp);
 
-		//結果ファイルを圧縮する場合
-		if ( $u_compress == 1 ){
-			if ( !($fp=fopen($cmp_file,"w")) ){
-				$this->set("result" , array("result" => "file open error", "id" => "$u_id"));
-				return;
-			}
-			fputs($fp,"compress");
-			fclose($fp);
-		}
-
 		// explainによるHiveQLチェック
-		$cmd=CMD_EXPLAIN_SHELL . " $u_id $hive_host $hive_port";
+		$cmd=CMD_EXPLAIN_SHELL . " $u_id $hive_host $hive_port $u_userid";
 		exec("/usr/bin/php $cmd",$result,$retval);
 		$this->log("CMD=$cmd => $retval",LOG_DEBUG);
 		if ( !file_exists($exp_file) ){
@@ -157,7 +135,7 @@ class ApisController extends AppController {
 		}
 
 		// explain結果判定
-		list($stage_cnt,$mapreduce_cnt,$line_cnt)=CommonComponent::CheckSQLexplain($u_id);
+		list($stage_cnt,$mapreduce_cnt,$line_cnt)=CommonComponent::CheckSQLexplain($u_userid,$u_id);
 		if ( $stage_cnt < 0 ){
 			$this->set("result" , array("result" => "unknown", "id" => "$u_id"));
 			return;
@@ -186,16 +164,22 @@ class ApisController extends AppController {
 		//パラメータ解析
 		$u_userid=$this->params['form']['u'];
 		$u_id=$this->params['form']['id'];
-		if ( $u_userid == "" or $u_id == "" ){
+		$u_compress=$this->params['form']['z'];
+		$u_column=$this->params['form']['c'];
+		if ( $u_userid == "" or $u_id == "" or $u_compress == "" or $u_column == "" ){
 			$this->set("result" , array("result" => "parameter error"));
 			return;
 		}
 
-		$hql_file=DIR_REQUEST."/${u_id}.hql";
-		$cmp_file=DIR_REQUEST."/${u_id}.cmp";
-		$out_file=DIR_RESULT."/${u_id}.out";
-		$csv_file=DIR_RESULT."/${u_id}.csv";
-		$zip_file=DIR_RESULT."/${u_id}.csv.zip";
+		//ディレクトリ
+		if ( CommonComponent::MakeDirectory($u_userid) != 0 ){
+			$this->set("result" , array("result" => "create directory error"));
+			return;
+		}
+		$hql_file=DIR_REQUEST."/${u_userid}/${u_id}.hql";
+		$out_file=DIR_RESULT."/${u_userid}/${u_id}.out";
+		$csv_file=DIR_RESULT."/${u_userid}/${u_id}.csv";
+		$zip_file=DIR_RESULT."/${u_userid}/${u_id}.csv.zip";
 
 		//SQL文取得
 		$u_query="";
@@ -209,19 +193,11 @@ class ApisController extends AppController {
 		}
 		fclose($fp);
 
-		//接続先Hive Server設定
-		$users=$this->Users->find('all', array('conditions' => "username='$u_userid'"));
-		if ( count($users) == 0 ){
-			$this->set("result" , array("result" => "user no data"));
+		//事前処理
+		list($res,$hive_host,$hive_port)=CommonComponent::HiveBefore($u_userid,$u_query);	
+		if ( $res != 0 ){
+			$this->set("result" , array("result" => "permission error"));
 			return;
-		}
-		$hive_host=HIVE_HOST;
-		$hive_port=HIVE_PORT;
-		if ( $users[0]['Users']['hive_host'] != "" ){ 
-			 $hive_host=$users[0]['Users']['hive_host'];
-		}
-		if ( $users[0]['Users']['hive_port'] != "" ){ 
-			 $hive_port=$users[0]['Users']['hive_port'];
 		}
 
 		//HiveQLをバックグラウンド実行するか判定
@@ -236,8 +212,8 @@ class ApisController extends AppController {
 		}
 
 		//バックグラウンド実行
+		$cmd=CMD_HIVE_SHELL . " $u_id $hive_host $hive_port $u_userid $u_compress $u_column";
 		if ( $bg_flg == 1 ){
-			$cmd=CMD_HIVE_SHELL . " $u_id $hive_host $hive_port";
 			exec("/usr/bin/php $cmd >> $out_file 2>&1 &",$result,$retval);
 			$this->log("CMD=$cmd => $retval",LOG_DEBUG);
 			sleep(1);
@@ -246,7 +222,6 @@ class ApisController extends AppController {
 		}
 
 		//フォアグラウンド実行
-		$cmd=CMD_HIVE_SHELL . " $u_id $hive_host $hive_port";
 		exec("/usr/bin/php $cmd >> $out_file 2>&1",$result,$retval);
 		$this->log("CMD=$cmd => $retval",LOG_DEBUG);
 		if ( $retval == 0 ){
@@ -280,11 +255,11 @@ class ApisController extends AppController {
 			return;
 		}
 
-		$csv_file=DIR_RESULT."/${u_id}.csv";
-		$zip_file=DIR_RESULT."/${u_id}.csv.zip";
-		$out_file=DIR_RESULT."/${u_id}.out";
-		$exp_file=DIR_RESULT."/${u_id}.exp";
-		$pid_file=DIR_RESULT."/${u_id}.pid";
+		$csv_file=DIR_RESULT."/${u_userid}/${u_id}.csv";
+		$zip_file=DIR_RESULT."/${u_userid}/${u_id}.csv.zip";
+		$out_file=DIR_RESULT."/${u_userid}/${u_id}.out";
+		$exp_file=DIR_RESULT."/${u_userid}/${u_id}.exp";
+		$pid_file=DIR_RESULT."/${u_userid}/${u_id}.pid";
 
 		//処理中
 		if ( !file_exists($out_file) ){
@@ -353,7 +328,7 @@ class ApisController extends AppController {
 		}
 
 		//ファイルの中身を返す
-		$read_file=DIR_RESULT."/${u_id}.${u_dtype}";
+		$read_file=DIR_RESULT."/${u_userid}/${u_id}.${u_dtype}";
 		if ( file_exists($read_file) ){
 			$datas=CommonComponent::FileRead($read_file,$u_dtype);
 			$this->set("result" , array("result" => "ok", "datas" => $datas, "dtype" => $u_dtype));
@@ -361,7 +336,7 @@ class ApisController extends AppController {
 		}
 
 		//zipファイルがある場合
-		$read_file=DIR_RESULT."/${u_id}.${u_dtype}.zip";
+		$read_file=DIR_RESULT."/${u_userid}/${u_id}.${u_dtype}.zip";
 		if ( file_exists($read_file) ){
 			$datas=CommonComponent::ZipFileRead($read_file,$u_dtype);
 			$this->set("result" , array("result" => "ok", "datas" => $datas, "dtype" => $u_dtype));
@@ -390,8 +365,8 @@ class ApisController extends AppController {
 			return;
 		}
 
-		$out_file=DIR_RESULT."/${u_id}.out";
-		$pid_file=DIR_RESULT."/${u_id}.pid";
+		$out_file=DIR_RESULT."/${u_userid}/${u_id}.out";
+		$pid_file=DIR_RESULT."/${u_userid}/${u_id}.pid";
 
 		//hadoop JobID取得
 		$jobid=CommonComponent::GetJobId($out_file);

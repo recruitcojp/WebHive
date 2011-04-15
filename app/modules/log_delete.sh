@@ -27,7 +27,7 @@ log_delete(){
 	log_ptn=$3
 
 	print_msg "INF:log_delete($log_path,$log_keep,$log_ptn)"
-	find ${log_path} -mtime +${log_keep} -name "${log_ptn}" -print | while read fil
+	find ${log_path} -follow -mtime +${log_keep} -name "${log_ptn}" -print | while read fil
 	do
 		print_msg "INF:rm $fil"
 		rm $fil

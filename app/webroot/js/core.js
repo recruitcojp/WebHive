@@ -1,6 +1,7 @@
 var sv_reqid='';
 var sv_timerid='';
 var sv_cmp='';
+var sv_col='';
 var sv_sql='';
 var sv_func='';
 var sv_str='';
@@ -11,7 +12,7 @@ var sv_str='';
 window.onbeforeunload = function(event) {
 	if ( sv_timerid != "" ){
 		event = event || window.event;
-		event.returnValue = 'JOB実行中ですが、終了しますか？';
+		event.returnValue = '実行中のJOBがあります。\nこのページを終了する前に、実行中のJOBを終了してください。\n[キャンセル]をクリックして、現在のページに戻ってください。';
 	}
 }
 
@@ -19,7 +20,7 @@ window.onbeforeunload = function(event) {
 // Ajaxリクエスト失敗時の処理
 /////////////////////////////////////////////////////////
 function AjaxRequestFail(request,opt) {
-	window.alert("サーバリクエストが異常終了しました。");
+	Ext.Msg.alert("リクエストエラー", "サーバリクエストが異常終了しました。").setIcon(Ext.Msg.ERROR);
 }
 
 /////////////////////////////////////////////////////////
@@ -54,7 +55,7 @@ function CheckHiveQL(){
 
 	sv_str=sv_sql.substring(pos1,pos2+deli_len);
 	if ( sv_str.length <= (deli_len * 2) ){
-		Ext.MessageBox.alert("HiveQLエラー", "置換文字列指定が不正です。クエリを見直して下さい。");
+		Ext.Msg.alert("HiveQLエラー", "置換文字列指定が不正です。クエリを見直して下さい。").setIcon(Ext.Msg.WARNING);
 		return;
 	}
 
@@ -136,7 +137,7 @@ function HiveDelete_fin(result,opt) {
 /////////////////////////////////////////////////////////
 // HiveQLのexplain
 /////////////////////////////////////////////////////////
-function HiveExplain(inSql,inCmp) {
+function HiveExplain(inSql,inCmp,inCol) {
 	if ( inSql == null ) { return; }
 	if ( sv_timerid != '' ){
 		TextOutFunc("WAR:HiveQL Running");
@@ -144,6 +145,7 @@ function HiveExplain(inSql,inCmp) {
 	}
 	sv_sql=inSql;
 	sv_cmp=inCmp;
+	sv_col=inCol;
 	sv_func='explain';
 	CheckHiveQL();
 }
@@ -155,7 +157,8 @@ function HiveExplain_req() {
 		method:'POST',
 		params:{
 			u:userid,
-			c:sv_cmp,
+			z:sv_cmp,
+			c:sv_col,
 			q:sv_sql
 		},
 		success:HiveExplain_fin,
@@ -177,7 +180,7 @@ function HiveExplain_fin(result,opt) {
 /////////////////////////////////////////////////////////
 // HiveQL実行
 /////////////////////////////////////////////////////////
-function HiveExecute(inSql,inCmp) {
+function HiveExecute(inSql,inCmp,inCol) {
 	if ( inSql == null ) { return; }
 	if ( sv_timerid != '' ){
 		TextOutFunc("WAR:HiveQL Running");
@@ -185,6 +188,7 @@ function HiveExecute(inSql,inCmp) {
 	}
 	sv_sql=inSql;
 	sv_cmp=inCmp;
+	sv_col=inCol;
 	sv_func='execute';
 	CheckHiveQL();
 }
@@ -196,7 +200,8 @@ function HiveExecute_req() {
 		method:'POST',
 		params:{
 			u:userid,
-			c:sv_cmp,
+			z:sv_cmp,
+			c:sv_col,
 			q:sv_sql
 		},
 		success:HiveExecute_fin,
@@ -215,15 +220,15 @@ function HiveExecute_fin(result,opt) {
 	var res = Ext.decode(result.responseText);
 
 	if ( res.result == "unknown" ){
-		var ck=window.confirm('HiveQLを実行しますか？')
-		if ( ck == false ){ return; }
-		HiveRequest(res.id);
+		Ext.Msg.confirm('クエリ実行確認','HiveQLを実行しますか？' ,function(btn){
+			if(btn == 'yes'){ HiveRequest(res.id); }
+		});
 		return;
 	}
 	if ( res.result == "check" ){
-		var ck=window.confirm('HiveQLを実行しますか？\n' + res.msg)
-		if ( ck == false ){ return; }
-		HiveRequest(res.id);
+		Ext.Msg.confirm('クエリ実行確認','HiveQLを実行しますか？<br>' + res.msg ,function(btn){
+			if(btn == 'yes'){ HiveRequest(res.id); }
+		});
 		return;
 	}
 	if ( res.result == "ok" ){
@@ -244,6 +249,8 @@ function HiveRequest(id) {
 		method:'POST',
 		params:{
 			u:userid,
+			z:sv_cmp,
+			c:sv_col,
 			id:id
 		},
 		success:HiveRequest_fin,
@@ -266,7 +273,7 @@ function HiveRequest_fin(result,opt) {
 	}
 	if ( res.result == "fin" ){
 		TextOutFunc("INF:HiveQL normal end");
-		TextOutFunc("INF:<a href=\"/WebHive/result/" + res.filnm + "\" target=\"_blank\">HiveQL Result<a>");
+		TextOutFunc("INF:<a href=\"/WebHive/result/" + userid + "/" + res.filnm + "\" target=\"_blank\">HiveQL Result<a>");
 		SetProgress(100,100,100);
 		sv_reqid=res.id;
 		sv_timerid='';
@@ -299,7 +306,7 @@ function HiveProcCheck_fin(result,opt) {
 
 	if ( res.result == "ok" ){
 		TextOutFunc("INF:HiveQL normal end");
-		TextOutFunc("INF:<a href=\"/WebHive/result/" + res.filnm + "\" target=\"_blank\">HiveQL Result<a>");
+		TextOutFunc("INF:<a href=\"/WebHive/result/" + userid + "/" + res.filnm + "\" target=\"_blank\">HiveQL Result<a>");
 		SetProgress(100,100,100);
 		sv_timerid='';
 		return;

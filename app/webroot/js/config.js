@@ -16,7 +16,9 @@ if (brlang == "ja") {
 			btnReset: 'リセット'
 		},
 		msg: {
-			emptyInput: 'HiveQLが未入力です',
+			checkInput: '入力確認',
+			checkDelete: '削除確認',
+			emptyQuery: 'HiveQLが未入力です',
 			emptyTitle: 'タイトルが未入力です',
 			noSupportDML: '入力されたSQLはサポートしていません'
 		}
@@ -36,7 +38,9 @@ if (brlang == "ja") {
 			btnReset: 'Reset'
 		},
 		msg: {
-			emptyInput: 'HiveQL is a uninput.',
+			checkInput: 'confirm',
+			checkDelete: 'confirm',
+			emptyQuery: 'HiveQL is a uninput.',
 			emptyTitle: 'Title is a uninput.',
 			noSupportDML: 'HiveQL is not supported.'
 		}
