@@ -120,7 +120,7 @@ Ext.onReady(function() {
 				defaults: {columnWidth: '.32', border: false },
 				items: [
 					{id:'inCompress', name:'inCompress', boxLabel:'zip圧縮', checked: true },
-					{id:'inColumn', name:'inColumn', boxLabel:'カラム名の有無', checked: true },
+					{id:'inColumn', name:'inColumn', boxLabel:'カラム名の有無', checked: true }
 				]
 			})
 			,{
@@ -144,11 +144,11 @@ Ext.onReady(function() {
 			id:'btnRun',
 			text: config.ui.btnRun
 		},{
-			id:'btnExplain',
-			text: config.ui.btnExplain
-		},{
 			id:'btnReset',
 			text: config.ui.btnReset
+		},{
+			id:'btnExplain',
+			text: config.ui.btnExplain
 		}],
 	});
 

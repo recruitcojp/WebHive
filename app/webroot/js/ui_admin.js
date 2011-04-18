@@ -124,7 +124,7 @@ Ext.onReady(function() {
 				defaults: {columnWidth: '.32', border: false },
 				items: [
 					{id:'inCompress', name:'inCompress', boxLabel:'zip圧縮', checked: true },
-					{id:'inColumn', name:'inColumn', boxLabel:'カラム名の有無', checked: true },
+					{id:'inColumn', name:'inColumn', boxLabel:'カラム名の有無', checked: true }
 				]
 			})
 			,{
@@ -145,23 +145,23 @@ Ext.onReady(function() {
 			}],
 		}],
 		buttons: [{
-			id:'btnUpload',
-			text: config.ui.btnUpload,
-		},{
-			id:'btnSql',
-			text: config.ui.btnSql,
-		},{
-			id:'btnReg',
-			text: config.ui.btnReg
-		},{
 			id:'btnRun',
 			text: config.ui.btnRun
+		},{
+			id:'btnReset',
+			text: config.ui.btnReset
 		},{
 			id:'btnExplain',
 			text: config.ui.btnExplain
 		},{
-			id:'btnReset',
-			text: config.ui.btnReset
+			id:'btnReg',
+			text: config.ui.btnReg
+		},{
+			id:'btnSql',
+			text: config.ui.btnSql,
+		},{
+			id:'btnUpload',
+			text: config.ui.btnUpload,
 		}],
 	});
 

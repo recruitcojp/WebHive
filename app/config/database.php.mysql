@@ -78,7 +78,7 @@ class DATABASE_CONFIG {
 		'persistent' => false,
 		'host' => 'localhost',
 		'login' => 'hive_user',
-		'password' => 'hive_password',
+		'password' => 'hive_user',
 		'database' => 'hive',
 		'prefix' => '',
 	);
