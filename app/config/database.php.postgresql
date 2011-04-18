@@ -80,7 +80,7 @@ class DATABASE_CONFIG {
 		'host' => 'localhost',
 		'port' => '5432',
 		'login' => 'hive_user',
-		'password' => 'hive_user',
+		'password' => 'hive_pass',
 		'database' => 'hive',
 		'encoding'=>'utf-8',
 		'prefix' => '',

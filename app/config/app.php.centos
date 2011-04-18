@@ -34,8 +34,8 @@ define("SQL_AUTH_GUEST", "");
 define("SQL_EXPLAIN_EXCLUDE", "^ls|^add|^delete|^set");
 
 //LDAP設定(LDAPを利用する場合のみ必要)
-define("LDAP_HOST", "localhost");
-define("LDAP_RDN", "uid=%USER%,ou=people,dc=raftel,dc=gl");
+define("LDAP_HOST", "");
+define("LDAP_RDN", "");
 define("LDAP_AUTH", "2");
 
 ?>
