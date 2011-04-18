@@ -266,7 +266,7 @@ function HiveRequest_fin(result,opt) {
 
 	if ( res.result == "ok" ){
 		TextOutFunc("INF:HiveQL Request-ID：" + res.id);
-		TextOutFunc("INF:<a href=\"javascript:void();\" onclick=\"HiveJobCancel()\">HiveQL Request Cancel<a>");
+		TextOutFunc("INF:<a href=\"javascript:void(0);\" onclick=\"HiveJobCancel()\">HiveQL Request Cancel<a>");
 		sv_timerid=setTimeout("HiveProcCheck(\"" + res.id + "\")",5000);
 		sv_reqid=res.id;
 		return;
