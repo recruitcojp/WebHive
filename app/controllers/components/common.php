@@ -79,8 +79,8 @@ class CommonComponent extends Object {
 		while ( true ){
 			$ret=$source->getData( 1 );
 			if ( $ret == "" ){ return $retval; }
-			if ( $ret == "\n" ){ return $retval; }
 			$retval.=$ret;
+			if ( $ret == "\n" ){ return $retval; }
 		}
 	}
 
