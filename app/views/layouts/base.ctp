@@ -8,15 +8,9 @@
 <script type="text/javascript" src="/WebHive/ext/ext-all.js"></script>
 <script type="text/javascript" src="/WebHive/js/config.js"></script>
 <script type="text/javascript" src="/WebHive/js/core.js"></script>
-<?php
-if ( $user['User']['authority'] == 1 ){
-	echo "<script type=\"text/javascript\" src=\"/WebHive/js/ui_admin.js\"></script>\n";
-}else if ( $user['User']['authority'] == 2 ){
-	echo "<script type=\"text/javascript\" src=\"/WebHive/js/ui_select.js\"></script>\n";
-}else{
-	echo "<script type=\"text/javascript\" src=\"/WebHive/js/ui_guest.js\"></script>\n";
-}
-?>
+<script type="text/javascript" >
+<?php echo $this->element('ui',array("user_auth"=>$user['User']['authority'], "upload_flg"=>FILE_UPLOAD_FLG)); ?>
+</script>
 </head>
 <body>
 <script type="text/javascript">

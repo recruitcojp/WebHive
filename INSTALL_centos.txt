@@ -74,9 +74,10 @@ CREATE TABLE users (
 id              integer auto_increment,
 username        varchar(50),
 password        varchar(50),
-authority               int,
+authority       int,
 hive_host       varchar(50),
 hive_port       int,
+hive_database   varchar(100),
 created         datetime default null,
 modified        datetime default null,
 PRIMARY KEY (id)
@@ -149,6 +150,7 @@ PRIMARY KEY (id)
 
 CREATE TABLE hiveqls (
 id              int default nextval('hiveqls_id_seq'),
+username        varchar(50),
 title           varchar(256),
 query           varchar(2048),
 created         timestamp default null,
@@ -257,4 +259,4 @@ upload_max_filesize 5M
 【注意事項】
 ・ファイルアップロードでエラーとなる場合はapacheやphpのサイズ制限を見直して下さい。
 ・HiveSQLの実行でメモリ不足のエラーが発生した場合はPHPパラメータの見直しを行ってください。
-
+・ZIP圧縮チェックボックスがONでHiveQLの出力結果が多い場合はメモリ不足でエラーとなります。
