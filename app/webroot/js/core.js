@@ -1,5 +1,6 @@
 var sv_reqid='';
 var sv_timerid='';
+var sv_db='';
 var sv_cmp='';
 var sv_col='';
 var sv_sql='';
@@ -137,12 +138,13 @@ function HiveDelete_fin(result,opt) {
 /////////////////////////////////////////////////////////
 // HiveQLのexplain
 /////////////////////////////////////////////////////////
-function HiveExplain(inSql,inCmp,inCol) {
+function HiveExplain(inDB, inSql,inCmp,inCol) {
 	if ( inSql == null ) { return; }
 	if ( sv_timerid != '' ){
 		TextOutFunc("WAR:HiveQL Running");
 		return;
 	}
+	sv_db=inDB;
 	sv_sql=inSql;
 	sv_cmp=inCmp;
 	sv_col=inCol;
@@ -157,6 +159,7 @@ function HiveExplain_req() {
 		method:'POST',
 		params:{
 			u:userid,
+			d:sv_db,
 			z:sv_cmp,
 			c:sv_col,
 			q:sv_sql
@@ -180,12 +183,13 @@ function HiveExplain_fin(result,opt) {
 /////////////////////////////////////////////////////////
 // HiveQL実行
 /////////////////////////////////////////////////////////
-function HiveExecute(inSql,inCmp,inCol) {
+function HiveExecute(inDB,inSql,inCmp,inCol) {
 	if ( inSql == null ) { return; }
 	if ( sv_timerid != '' ){
 		TextOutFunc("WAR:HiveQL Running");
 		return;
 	}
+	sv_db=inDB;
 	sv_sql=inSql;
 	sv_cmp=inCmp;
 	sv_col=inCol;
@@ -200,6 +204,7 @@ function HiveExecute_req() {
 		method:'POST',
 		params:{
 			u:userid,
+			d:sv_db,
 			z:sv_cmp,
 			c:sv_col,
 			q:sv_sql
@@ -249,6 +254,7 @@ function HiveRequest(id) {
 		method:'POST',
 		params:{
 			u:userid,
+			d:sv_db,
 			z:sv_cmp,
 			c:sv_col,
 			id:id

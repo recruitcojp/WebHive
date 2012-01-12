@@ -164,6 +164,10 @@ function hive_exec($fp,$client,$sql) {
 	$queryid=$res->queries[0]->queryId;
 	print "INF:queryid=$queryid\n";
 
+	if ( eregi("^use",$sql) == True ){
+		return 0; 
+	}
+
 	//カラム表示
 	if ( $hive_column == "C" ){
 		$outStr="";

@@ -97,24 +97,28 @@ class CommonComponent extends Object {
 			$u_auth=LDAP_AUTH;
 			$u_host="";
 			$u_port="";
+			$u_database="";
 		}else{
 			$u_auth=$users[0]['Users']['authority'];
 			$u_host=$users[0]['Users']['hive_host'];
 			$u_port=$users[0]['Users']['hive_port'];
+			$u_database=$users[0]['Users']['hive_database'];
 		}
 
 		//権限チェック
                 if ( CommonComponent::CheckSQLAuth($u_auth,$u_query) != 0 ){
-                        return array(1,"","");
+                        return array(1,"","","");
                         return;
                 }
 
                 //接続先Hive Server設定
                 $hive_host=HIVE_HOST;
                 $hive_port=HIVE_PORT;
+		$hive_database="";
                 if ( $u_host != "" ){ $hive_host=$u_host; }
                 if ( $u_port != "" ){ $hive_port=$u_port; }
-		return array(0,$hive_host,$hive_port);
+                if ( $u_database != "" ){ $hive_database=$u_database; }
+		return array(0,$hive_host,$hive_port,$hive_database);
 	}
 
 	///////////////////////////////////////////////////////////////////
