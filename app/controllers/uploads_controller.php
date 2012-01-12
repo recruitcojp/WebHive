@@ -16,6 +16,12 @@ class UploadsController extends AppController {
 
 		$this->layout = "ajax";
 
+		//ファイルアップロード機能チェック
+		if ( FILE_UPLOAD_FLG == 0 ){
+			$this->set("result" , array("success" => false,'msg'=>'ファイルアップロードが許可されていません。'));
+			return;
+		}
+
 		//異常チェック
 		if ( empty($this->params['form']['outdir']) or empty($this->params['form']['filenm']['name']) ){
 			$this->set("result" , array("success" => false,'msg'=>'未入力の項目があります。'));
@@ -47,6 +53,7 @@ class UploadsController extends AppController {
 		$u_out_file="$u_outdir/$u_filenm";
 		$cmd=CMD_HADOOP." fs \-put $u_tmpname $u_out_file";
 		exec("$cmd > /dev/null 2>&1",$result,$retval);
+		$this->log("$u_tmpname",LOG_DEBUG);
 		$this->log("CMD=$cmd => $retval",LOG_DEBUG);
 		if ( $retval != 0 ){
 			$this->set("result" , array("success" => false,'msg'=>"HDFSへのputが失敗しました。"));

@@ -16,6 +16,7 @@ class ApisController extends AppController {
 		$datas=array();
 		for($i=0; $i<$total; $i++){
 			$datas[]=array("id"=>$querys[$i]['Hiveqls']['id'], 
+				"username"=>$querys[$i]['Hiveqls']['username'], 
 				"title"=>$querys[$i]['Hiveqls']['title'], 
 				"sql"=>$querys[$i]['Hiveqls']['query']);
 		}
@@ -23,6 +24,51 @@ class ApisController extends AppController {
 		$this->set("result" , array("total" => "$total","row" => $datas));
 
 	}
+
+	///////////////////////////////////////////////////////////////////
+	//hiveデータベース名を返す
+	///////////////////////////////////////////////////////////////////
+	function database() {
+		//ajaxリクエスト以外
+		if( !$this->RequestHandler->isAjax() ) {
+			$this->set("result" , array("result" => "not ajax"));
+			return;
+		}
+
+		//パラメータ解析
+		$u_userid=$this->params['form']['u'];
+		if( $u_userid == "" ){
+			$this->set("result" , array("result" => "parameter error"));
+			return;
+		}
+
+		//事前処理
+		list($res,$hive_host,$hive_port,$hive_database)=CommonComponent::HiveBefore($u_userid,"show database");
+		if ( $res != 0 ){
+			$this->set("result" , array("result" => "permission error"));
+			return;
+		}
+
+		if ( $hive_database == "" ){
+			#コマンド実行
+			$cmd=CMD_PHP . " " . CMD_HIVE_DATABASE . " " . $hive_host . " " . $hive_port;
+			exec($cmd,$result,$retval);
+			$this->log("CMD=$cmd => $retval",LOG_DEBUG);
+		}else{
+			$result=split(",",$hive_database);
+		}
+
+		#結果セット
+		$datas=array();
+		$total=count($result);
+		for($i=0; $i<$total; $i++){
+			$datas[]=array("id"=>$result[$i], "caption"=>$result[$i]);
+		}
+
+		$this->set("result" , array("total" => "$total","row" => $datas));
+
+	}
+
 
 	///////////////////////////////////////////////////////////////////
 	//HiveQL登録処理
@@ -44,11 +90,13 @@ class ApisController extends AppController {
 		}
 
 		//DBへの登録
+		App::import('Sanitize');
 		$reg=array();
-		$reg['Hiveqls']['title']=$u_title;
-		$reg['Hiveqls']['query']=$u_query;
+		$reg['Hiveqls']['username']=$u_userid;
+		$reg['Hiveqls']['title']=Sanitize::clean($u_title);
+		$reg['Hiveqls']['query']=Sanitize::clean($u_query);
 		$this->Hiveqls->create();
-		if ( !($this->Hiveqls->save($reg,array('title','query'))) ){
+		if ( !($this->Hiveqls->save($reg,array('username','title','query'))) ){
 			$this->set("result" , array("result" => "db access error"));
 			return;
 		}
@@ -95,14 +143,15 @@ class ApisController extends AppController {
 
 		//パラメータ解析
 		$u_userid=$this->params['form']['u'];
+		$u_database=$this->params['form']['d'];
 		$u_query=$this->params['form']['q'];
-		if ( $u_userid == "" or $u_query == "" ){
+		if ( $u_database == "" or $u_userid == "" or $u_query == "" ){
 			$this->set("result" , array("result" => "parameter error"));
 			return;
 		}
 
 		//事前処理
-		list($res,$hive_host,$hive_port)=CommonComponent::HiveBefore($u_userid,$u_query);	
+		list($res,$hive_host,$hive_port,$hive_database)=CommonComponent::HiveBefore($u_userid,$u_query);	
 		if ( $res != 0 ){
 			$this->set("result" , array("result" => "permission error"));
 			return;
@@ -122,12 +171,13 @@ class ApisController extends AppController {
 			$this->set("result" , array("result" => "file open error", "id" => "$u_id"));
 			return;
 		}
+		fputs($fp,"use ${u_database};");
 		fputs($fp,"$u_query");
 		fclose($fp);
 
 		// explainによるHiveQLチェック
-		$cmd=CMD_EXPLAIN_SHELL . " $u_id $hive_host $hive_port $u_userid";
-		exec("/usr/bin/php $cmd",$result,$retval);
+		$cmd=CMD_PHP . " " . CMD_EXPLAIN_SHELL . " $u_id $hive_host $hive_port $u_userid";
+		exec($cmd,$result,$retval);
 		$this->log("CMD=$cmd => $retval",LOG_DEBUG);
 		if ( !file_exists($exp_file) ){
 			$this->set("result" , array("result" => "explain error", "id" => "$u_id"));
@@ -142,7 +192,7 @@ class ApisController extends AppController {
 		}
 
 		//時間がかかりそうな場合は結果確認画面を出す
-		if ( $stage_cnt > 2 or $mapreduce_cnt > 0 or $line_cnt > 30 ){
+		if ( $stage_cnt > 3 or $mapreduce_cnt > 0 or $line_cnt > 35 ){
 			$msg="処理数=$stage_cnt MapReduce数=$mapreduce_cnt コスト=$line_cnt";
 			$this->set("result" , array("result" => "check", "id" => "$u_id", "msg"=>"$msg"));
 		}else{
@@ -194,7 +244,7 @@ class ApisController extends AppController {
 		fclose($fp);
 
 		//事前処理
-		list($res,$hive_host,$hive_port)=CommonComponent::HiveBefore($u_userid,$u_query);	
+		list($res,$hive_host,$hive_port,$hive_database)=CommonComponent::HiveBefore($u_userid,$u_query);	
 		if ( $res != 0 ){
 			$this->set("result" , array("result" => "permission error"));
 			return;
@@ -212,9 +262,9 @@ class ApisController extends AppController {
 		}
 
 		//バックグラウンド実行
-		$cmd=CMD_HIVE_SHELL . " $u_id $hive_host $hive_port $u_userid $u_compress $u_column";
+		$cmd=CMD_PHP . " " . CMD_HIVE_SHELL . " $u_id $hive_host $hive_port $u_userid $u_compress $u_column";
 		if ( $bg_flg == 1 ){
-			exec("/usr/bin/php $cmd >> $out_file 2>&1 &",$result,$retval);
+			exec("$cmd >> $out_file 2>&1 &",$result,$retval);
 			$this->log("CMD=$cmd => $retval",LOG_DEBUG);
 			sleep(1);
 			$this->set("result" , array("result" => "ok", "id" => "$u_id"));
@@ -222,7 +272,7 @@ class ApisController extends AppController {
 		}
 
 		//フォアグラウンド実行
-		exec("/usr/bin/php $cmd >> $out_file 2>&1",$result,$retval);
+		exec("$cmd >> $out_file 2>&1",$result,$retval);
 		$this->log("CMD=$cmd => $retval",LOG_DEBUG);
 		if ( $retval == 0 ){
 			if ( file_exists($csv_file) ){
