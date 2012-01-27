@@ -62,35 +62,8 @@ mysql> flush privileges;
 (3)作成したDBに接続できるのを確認する。
 # mysql -u <ユーザ名> -p<パスワード> <DB名>
 
-(4)作成したDBで以下のcreate文を実行する。
-CREATE TABLE cake_sessions (
-  id varchar(255) NOT NULL default '',
-  data text,
-  expires int(11) default NULL,
-  PRIMARY KEY  (id)
-);
-
-CREATE TABLE users (
-id              integer auto_increment,
-username        varchar(50),
-password        varchar(50),
-authority       int,
-hive_host       varchar(50),
-hive_port       int,
-hive_database   varchar(100),
-created         datetime default null,
-modified        datetime default null,
-PRIMARY KEY (id)
-);
-
-CREATE TABLE hiveqls (
-id              integer auto_increment,
-title           varchar(256),
-query           varchar(2048),
-created         datetime default null,
-modified        datetime default null,
-PRIMARY KEY (id)
-);
+(4)作成したDBでcreate_mysql.sqlを実行する。
+mysql> source create_mysql.sql
 
 2.2. WebHiveリポジトリにPostgreSQLを利用する場合
 
@@ -125,38 +98,8 @@ PRIMARY KEY (id)
 # psql -W -h localhost -p 5432 -U <ユーザ名> <DB名>
 xxx=> select current_schema();			・・・カレントスキーマが正しいのを確認
 
-(7)テーブルとシーケンスの作成
-CREATE SEQUENCE users_id_seq;
-CREATE SEQUENCE hiveqls_id_seq;
-
-CREATE TABLE cake_sessions (
-  id varchar(255) NOT NULL default '',
-  data text,
-  expires int default NULL,
-  PRIMARY KEY  (id)
-);
-
-CREATE TABLE users (
-id    		int default nextval('users_id_seq'),
-username        varchar(50),
-password        varchar(50),
-authority               int,
-hive_host       varchar(50),
-hive_port       int,
-created         timestamp default null,
-modified        timestamp default null,
-PRIMARY KEY (id)
-);
-
-CREATE TABLE hiveqls (
-id              int default nextval('hiveqls_id_seq'),
-username        varchar(50),
-title           varchar(256),
-query           varchar(2048),
-created         timestamp default null,
-modified        timestamp default null,
-PRIMARY KEY (id)
-);
+(7)テーブルとシーケンスを作成する。
+xxx=> \i create_postgresql.sql
 
 
 3. Apacheの設定を変更する。
@@ -165,7 +108,7 @@ PRIMARY KEY (id)
 # /etc/init.d/httpd restart
 
 4. hive serverの動作を確認する。
-# php /var/www/WebHive/app/modules/test.php
+# php /var/www/WebHive/app/modules/hivetest.php
 
 
 5. WebHiveを導入する。
@@ -259,4 +202,6 @@ upload_max_filesize 5M
 【注意事項】
 ・ファイルアップロードでエラーとなる場合はapacheやphpのサイズ制限を見直して下さい。
 ・HiveSQLの実行でメモリ不足のエラーが発生した場合はPHPパラメータの見直しを行ってください。
-・ZIP圧縮チェックボックスがONでHiveQLの出力結果が多い場合はメモリ不足でエラーとなります。
+・ストリーミング圧縮でメモリ不足エラーとなる場合は、zip圧縮スクリプトをご利用下さい。
+　　ストリーミンング圧縮：/var/www/html/WebHive/app/modules/hive_request.php
+　　zip圧縮：/var/www/html/WebHive/app/modules/hive_request_no.php
