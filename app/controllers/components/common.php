@@ -334,5 +334,29 @@ class CommonComponent extends Object {
 		return array($jobid,$stage_cnt,$map_p,$reduce_p);
 	}
 
+
+	///////////////////////////////////////////////////////////////////
+	//クエリ実行結果を更新
+	///////////////////////////////////////////////////////////////////
+	function UpdateRunhistsResult($u_rid,$u_res){
+
+		$this->log("UpdateRunhistsResult($u_rid,$u_res)",LOG_DEBUG);
+
+		//実行履歴検索
+		$qwk=$this->Runhists->find('all', array('conditions' => "rid='$u_rid'"));
+		if ( count($qwk) == 0 ){
+			return 1;
+		}
+
+		//処理結果更新
+		$runlog['Runhists']['id'] = $qwk[0]['Runhists']['id'];
+		$runlog['Runhists']['rsts'] = $u_res;
+		$runlog['Runhists']['findate'] = date('Y-m-d H:i:s');
+		if ( !($this->Runhists->save($runlog, array('id','rsts','findate') )) ){
+			return 2;
+		}
+
+		return 0;
+	}
 }
 ?>

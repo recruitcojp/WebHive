@@ -1,7 +1,5 @@
 Ext.BLANK_IMAGE_URL = 'ext/resources/images/default/s.gif';
 
-<?php echo "[$user_auth][$upload_flg]\n"; ?>
-
 Ext.onReady(function() {
 
 	///////////////////////////////////////////////////////////////////
@@ -11,15 +9,16 @@ Ext.onReady(function() {
 		constructor: function() {
 			this.addEvents('HiveReloadEvent');
 			this.on('HiveReloadEvent', function() {
-				storeSQL.load();
+				storeSQL.load({params:{u:userid,q:'my'}});
 			});
 		}
 	});
 
+
 	///////////////////////////////////////////////////////////////////
-	//Grid
+	//データストア
 	///////////////////////////////////////////////////////////////////
-	//データストアの設定(登録済みクエリ表示)
+	//データストアの設定(登録クエリ/実行履歴/クエリ変更履歴)
 	var storeSQL = new Ext.data.JsonStore({
 		url:'/WebHive/apis/select',
 		totalProperty:'total',
@@ -28,11 +27,15 @@ Ext.onReady(function() {
 			{name:'id'},
 			{name:'username'},
 			{name:'title'},
-			{name:'sql'}
+			{name:'sql'},
+			{name:'rid'},
+			{name:'rfil'},
+			{name:'rsts'},
+			{name:'created'}
 		],
-		autoLoad:true
+		autoLoad:false
 	});
-	storeSQL.load();
+	storeSQL.load({params:{u:userid,q:'my'}});
 
 	//データストアの設定(利用可能データベース)
 	var storeDatabase = new Ext.data.JsonStore({
@@ -46,6 +49,9 @@ Ext.onReady(function() {
 	});
 	storeDatabase.load({ params:{ u:userid } });
 
+	///////////////////////////////////////////////////////////////////
+	//画面設定
+	///////////////////////////////////////////////////////////////////
 	//SelModelの設定
 	var sm = new Ext.grid.RowSelectionModel({
 		singleSelect:true
@@ -53,20 +59,45 @@ Ext.onReady(function() {
 
 	//カラムモデルの設定
 	var column = new Ext.grid.ColumnModel([ {
+			id:'id',
+			header:'QUERY ID',
+			dataIndex:'id',
+			hidden:true
+		}, {
+			id:'rid',
+			header:'REQUEST ID',
+			dataIndex:'rid',
+			hidden:true
+		}, {
+			id:'rfil',
+			header:'RUN ID',
+			dataIndex:'rfil',
+			hidden:true
+		}, {
+			id:'created',
+			header:'DATE',
+			dataIndex:'created',
+			hidden:false
+		}, {
 			id:'username',
 			header:'USERNAME',
 			dataIndex:'username',
-			width:100
+			hidden:false
 		}, {
 			id:'title',
 			header:'TITLE',
 			dataIndex:'title',
-			width:100
+			hidden:false
 		}, {
 			id:'sql',
 			header:'HiveQL',
 			dataIndex:'sql',
-			width:300
+			hidden:false
+		}, {
+			id:'rsts',
+			header:'STATUS',
+			dataIndex:'rsts',
+			hidden:true
 		}
 	]);
 
@@ -79,7 +110,47 @@ Ext.onReady(function() {
 		cm:column,
 		sm:sm,
 		store:storeSQL,
+		tbar:[ {
+			text:'全登録クエリ表示',
+			iconCls:'preview-hide',
+			handler: function(btn){
+				storeSQL.load({params:{u:userid,q:'all'}});
+				ChangeGridColumn('all');
+			}
+		},{
+			text:'マイクエリ表示',
+			iconCls:'details',
+			handler:function(btn){
+				storeSQL.load({params:{u:userid,q:'my'}});
+				ChangeGridColumn('my');
+			}
+		},{
+			text:'実行履歴表示',
+			iconCls:'preview-bottom',
+			handler:function(btn){
+				storeSQL.load({params:{u:userid,q:'history'}});
+				ChangeGridColumn('history');
+			}
+		},{
+			text:'クエリ変更履歴表示',
+			iconCls:'preview-right',
+			handler:function(btn){
+				var record = grid.selModel.getSelected();
+				if( record ) {
+					var qid=record.get('id');
+					storeSQL.load({params:{u:userid,q:'mod',id:qid}});
+				}else{
+					storeSQL.load({params:{u:userid,q:'mod'}});
+				}
+				ChangeGridColumn('mod');
+			}
+		} ],
 		listeners:{
+			rowcontextmenu:function(grid, row, e){
+				grid.getSelectionModel().selectRow(row);
+				e.stopEvent();
+				contextMenu.showAt(e.getXY());
+			},
 			rowdblclick:function(grid, row, e){
 				var record = grid.getStore().getAt(row);
 				handleSelect(record);
@@ -135,6 +206,13 @@ Ext.onReady(function() {
 				editable: false,
 				triggerAction: 'all',
 				mode: 'local'
+			},{
+				id: 'inQid',
+				xtype: 'textfield',
+				fieldLabel: 'Query ID',
+				hidden:true,
+				readOnly: true,
+				width: '100%'
 			},{
 				id: 'inTitle',
 				xtype: 'textfield',
@@ -285,8 +363,9 @@ Ext.onReady(function() {
 	echo "//登録ボタンクリック時の処理\n";
 	echo "///////////////////////////////////////////////////////////////////\n";
 	echo "Ext.get(\"btnReg\").on(\"click\", function() {\n";
-	echo "	inHiveQL = Ext.getCmp(\"inHiveQL\").getValue();\n";
+	echo "	inQid = Ext.getCmp(\"inQid\").getValue();\n";
 	echo "	inTitle = Ext.getCmp(\"inTitle\").getValue();\n";
+	echo "	inHiveQL = Ext.getCmp(\"inHiveQL\").getValue();\n";
 	echo "	if ( inTitle.trim() == \"\") {\n";
 	echo "		Ext.Msg.alert(config.msg.checkInput, config.msg.emptyTitle);\n";
 	echo "		return;\n";
@@ -295,7 +374,7 @@ Ext.onReady(function() {
 	echo "		Ext.Msg.alert(config.msg.checkInput, config.msg.emptyQuery);\n";
 	echo "		return;\n";
 	echo "	}\n";
-	echo "	var result = HiveRegister(inTitle,inHiveQL);\n";
+	echo "	var result = HiveRegister(inQid,inTitle,inHiveQL);\n";
 	echo "});\n";
 } ?>
 
@@ -303,6 +382,10 @@ Ext.onReady(function() {
 	//実行ボタンクリック時の処理
 	///////////////////////////////////////////////////////////////////
 	Ext.get("btnRun").on("click", function() {
+		if ( sv_timerid != '' ){
+			TextOutFunc("WAR:HiveQL Running");
+			return;
+		}
 		inDB = Ext.getCmp("inDatabase").getRawValue();
 		inSQL = Ext.getCmp("inHiveQL").getValue();
 		inCMP = Ext.getCmp("inCompress").getValue();
@@ -320,6 +403,10 @@ Ext.onReady(function() {
 	//Explainボタンクリック時の処理
 	///////////////////////////////////////////////////////////////////
 	Ext.get("btnExplain").on("click", function() {
+		if ( sv_timerid != '' ){
+			TextOutFunc("WAR:HiveQL Running");
+			return;
+		}
 		inDB = Ext.getCmp("inDatabase").getRawValue();
 		inSQL = Ext.getCmp("inHiveQL").getValue();
 		inCMP = Ext.getCmp("inCompress").getValue();
@@ -334,15 +421,33 @@ Ext.onReady(function() {
 	});
 
 	///////////////////////////////////////////////////////////////////
-	//クリアボタンクリック時の処理
+	//リセットボタンクリック時の処理
 	///////////////////////////////////////////////////////////////////
 	Ext.get("btnReset").on("click", function() {
+		if ( sv_timerid != '' ){
+			TextOutFunc("WAR:HiveQL Running");
+			return;
+		}
 		Ext.getCmp("outTab").setActiveTab("outConsole");
+		Ext.getCmp("outExplain").setValue("");
+		Ext.getCmp("outDataView").setValue("");
+		Ext.getCmp("outOutput").setValue("");
+		Ext.getDom("outConsole").innerHTML = "";
+		Ext.getCmp("inQid").setValue('');
 		Ext.getCmp("inTitle").setValue('');
 		Ext.getCmp("inHiveQL").setValue('');
 		SetProgress(0,0,0);
 		HiveProcCheck_Clear();
-		storeSQL.load();
+		storeSQL.load({params:{u:userid,q:'my'}});
+
+		sv_reqid='';
+		sv_timerid='';
+		sv_db='';
+		sv_cmp='';
+		sv_col='';
+		sv_sql='';
+		sv_func='';
+		sv_str='';
 	});
 
 	///////////////////////////////////////////////////////////////////
@@ -350,11 +455,26 @@ Ext.onReady(function() {
 	///////////////////////////////////////////////////////////////////
 	function handleSelect(record) {
 		if(!record) {return;};
+		if ( sv_timerid != '' ){
+			TextOutFunc("WAR:HiveQL Running");
+			return;
+		}
+
+		//HiveQL入力画面設定
+		var id = new Ext.XTemplate('{id}').apply(record.data);
 		var title = new Ext.XTemplate('{title}').apply(record.data);
 		var sql = new Ext.XTemplate('{sql}').apply(record.data);
-
+		Ext.getCmp("inQid").setValue(id);
 		Ext.getCmp("inTitle").setValue(title);
 		Ext.getCmp("inHiveQL").setValue(sql);
+
+		//下部表示
+		var rfil=record.get('rfil');
+		if ( rfil != "" ){
+			msg="Result Download (" + rfil + ")";
+			TextOutFunc("INF:<a href=\"/WebHive/result/" + userid + "/" + rfil + "\" target=\"_blank\">" + msg + "<a>");
+		}
+		sv_reqid=record.get('rid');
 	};
 
 	///////////////////////////////////////////////////////////////////
@@ -366,17 +486,33 @@ Ext.onReady(function() {
 		if (tab.id == 'outDataView') { HiveDownload("csv"); }
 	}
 
+	///////////////////////////////////////////////////////////////////
+	//グリッド表示カラム変更
+	///////////////////////////////////////////////////////////////////
+	function ChangeGridColumn(typ){
+		var config=grid.getColumnModel().config;
+		if ( typ == 'history' ){
+			config[5].hidden=true;
+			config[7].hidden=false;
+		}else{
+			config[5].hidden=false;
+			config[7].hidden=true;
+		}
+		grid.getColumnModel().reconfigure(storeSQL, config);
+	}
+
 <?php if ( $user_auth==1 or $user_auth==2){
 	echo "///////////////////////////////////////////////////////////////////\n";
 	echo "//SQL選択画面の右クリック\n";
 	echo "///////////////////////////////////////////////////////////////////\n";
 	echo "function handleDelete(record){\n";
 	echo "	if(!record) {return;};\n";
-	echo "	var record = grid.selModel.getSelected();\n";
+	echo "	var qid=record.get('id');\n";
+	echo "	if ( qid == \"\" ){ return; }\n";
 	echo "	Ext.Msg.confirm(config.msg.checkDelete, '「' + record.get('title') + '」を削除しますか？' ,function(btn){\n";
 	echo "		if(btn == 'yes'){ \n";
-	echo "			HiveDelete(record.get('id'));\n";
-	echo "			storeSQL.load();\n";
+	echo "			HiveDelete(qid);\n";
+	echo "			storeSQL.load({params:{u:userid,q:'my'}});\n";
 	echo "		}\n";
 	echo "	});\n";
 	echo "}\n";
