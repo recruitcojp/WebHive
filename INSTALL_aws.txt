@@ -64,40 +64,12 @@ mysql> flush privileges;
 (3)作成したDBに接続できるのを確認する。
 # mysql -u <ユーザ名> -p<パスワード> <DB名>
 
-(4)作成したDBで以下のcreate文を実行する。
-CREATE TABLE cake_sessions (
-  id varchar(255) NOT NULL default '',
-  data text,
-  expires int default NULL,
-  PRIMARY KEY  (id)
-);
-
-CREATE TABLE users (
-id              integer auto_increment,
-username        varchar(50),
-password        varchar(50),
-authority       int,
-hive_host       varchar(50),
-hive_port       int,
-hive_database   varchar(100),
-created         datetime default null,
-modified        datetime default null,
-PRIMARY KEY (id)
-);
-
-CREATE TABLE hiveqls (
-id              integer auto_increment,
-username        varchar(50),
-title           varchar(256),
-query           varchar(2048),
-created         datetime default null,
-modified        datetime default null,
-PRIMARY KEY (id)
-);
+(4)作成したDBでcreate_mysql.sqlを実行する。
+mysql> source create_mysql.sql
 
 
 6. hive serverの動作を確認する。
-# php /var/www/WebHive/app/modules/test.php
+# php /var/www/WebHive/app/modules/hivetest.php
 
 
 7. WebHiveを導入する。
@@ -162,7 +134,7 @@ http://xxxxxxxxxx/WebHive/users/add
 
 9.2. クーロン設定を追加する。
 # crontab -e
-3 * * * * /var/www/WebHive/app/modules/log_delete.sh > /var/www/html/WebHive/app/tmp/logs/log_delete.out 2>&1
+3 * * * * /var/www/WebHive/app/modules/log_delete.sh > /var/www/WebHive/app/tmp/logs/log_delete.out 2>&1
 ※毎時３分にログパージスクリプトを起動する。
 
 
@@ -185,5 +157,6 @@ upload_max_filesize 5M
 【注意事項】
 ・WevHiveをhive server稼働ノード以外にインストールするとプログレスバーが正常に動作しません。
 ・ファイルアップロードでエラーとなる場合はapacheやphpのサイズ制限を見直して下さい。
-・ZIP圧縮チェックボックスがONでHiveQLの出力結果が多い場合はメモリ不足でエラーとなります。
-
+・ストリーミング圧縮でメモリ不足エラーとなる場合は、zip圧縮スクリプトをご利用下さい。
+　　ストリーミンング圧縮：/var/www/WebHive/app/modules/hive_request.php
+　　zip圧縮：/var/www/WebHive/app/modules/hive_request_no.php

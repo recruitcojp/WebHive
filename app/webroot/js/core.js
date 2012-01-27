@@ -72,7 +72,7 @@ function CheckHiveQL_fin(btn,text){
 /////////////////////////////////////////////////////////
 // HiveQL登録
 /////////////////////////////////////////////////////////
-function HiveRegister(inTitle,inSql) {
+function HiveRegister(inQid,inTitle,inSql) {
 	if ( inTitle == null ) { return; }
 	if ( inSql == null ) { return; }
 
@@ -81,6 +81,7 @@ function HiveRegister(inTitle,inSql) {
 		method:'POST',
 		params:{
 			u:userid,
+			i:inQid,
 			t:inTitle,
 			q:inSql
 		},
@@ -95,8 +96,11 @@ function HiveRegister_fin(result,opt) {
 	var obj = new MyEvent();
 
 	if ( res.result == "ok" ){
-		TextOutFunc("INF:HiveQL Register OK");
+		TextOutFunc("INF:HiveQL Register OK(ID=" + res.qid + ")");
 		obj.fireEvent('HiveReloadEvent');
+		if ( res.qid != "" ){
+			Ext.getCmp("inQid").setValue(res.qid);
+		}
 	}else{
 		TextOutFunc("ERR:HiveQL Register error(" + res.result + ")");
 	}
@@ -279,7 +283,8 @@ function HiveRequest_fin(result,opt) {
 	}
 	if ( res.result == "fin" ){
 		TextOutFunc("INF:HiveQL normal end");
-		TextOutFunc("INF:<a href=\"/WebHive/result/" + userid + "/" + res.filnm + "\" target=\"_blank\">HiveQL Result<a>");
+		msg="Result Download (" + res.filnm + ")"; 
+		TextOutFunc("INF:<a href=\"/WebHive/result/" + userid + "/" + res.filnm + "\" target=\"_blank\">" + msg + "<a>");
 		SetProgress(100,100,100);
 		sv_reqid=res.id;
 		sv_timerid='';
@@ -312,7 +317,8 @@ function HiveProcCheck_fin(result,opt) {
 
 	if ( res.result == "ok" ){
 		TextOutFunc("INF:HiveQL normal end");
-		TextOutFunc("INF:<a href=\"/WebHive/result/" + userid + "/" + res.filnm + "\" target=\"_blank\">HiveQL Result<a>");
+		msg="Result Download (" + res.filnm + ")"; 
+		TextOutFunc("INF:<a href=\"/WebHive/result/" + userid + "/" + res.filnm + "\" target=\"_blank\">" + msg + "<a>");
 		SetProgress(100,100,100);
 		sv_timerid='';
 		return;

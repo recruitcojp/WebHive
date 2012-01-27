@@ -11,6 +11,14 @@
 <script type="text/javascript" >
 <?php echo $this->element('ui',array("user_auth"=>$user['User']['authority'], "upload_flg"=>FILE_UPLOAD_FLG)); ?>
 </script>
+<style TYPE="text/css">
+<!--
+	.details {background-image: url(/WebHive/img/details.gif) !important;}
+	.preview-bottom {background-image: url(/WebHive/img/preview-bottom.gif) !important;}
+	.preview-right {background-image: url(/WebHive/img/preview-right.gif) !important;}
+	.preview-hide {background-image: url(/WebHive/img/preview-hide.gif) !important;}
+-->
+</style>
 </head>
 <body>
 <script type="text/javascript">
