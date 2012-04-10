@@ -107,10 +107,12 @@ https://github.com/recruitcojp/WebHive/
 # mkdir /mnt/WebHive
 # mkdir /mnt/WebHive/request
 # mkdir /mnt/WebHive/result
+# mkdir /mnt/WebHive/audit
 # chown -R www-data:www-data /mnt/WebHive
 # cd /var/www/WebHive
 # ln -s /mnt/WebHive/request
 # ln -s /mnt/WebHive/result
+# ln -s /mnt/WebHive/audit
 # cd /var/www/WebHive/app/webroot
 # ln -s /mnt/WebHive/result
 
@@ -138,9 +140,9 @@ http://xxxxxxxxxx/WebHive/users/add
 ※毎時３分にログパージスクリプトを起動する。
 
 
-10. cakePHPログのローテーション設定を行う。
+10. cakePHPログ/アプリログのローテーション設定を行う。
 # vi /etc/logrotate.d/cakephp
-/var/www/WebHive/app/tmp/logs/*.log {
+/var/www/WebHive/app/tmp/logs/*.log /var/www/html/WebHive/audit/*.log {
     daily
     rotate 7
     missingok

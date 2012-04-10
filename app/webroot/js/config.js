@@ -7,6 +7,7 @@ if (brlang == "ja") {
 			inputEmptyText : 'ここに HiveQL を入力し[実行]ボタンを押下してください',
 			titleSelect: 'HiveQL選択',
 			titleInput: 'HiveQL入力',
+			btnCreDB: 'DB作成',
 			btnUpload: 'Upload',
 			btnSql: 'HiveQL管理画面',
 			btnUpd: 'HiveQL情報更新',
@@ -18,8 +19,10 @@ if (brlang == "ja") {
 		msg: {
 			checkInput: '入力確認',
 			checkDelete: '削除確認',
+			checkCreDB: 'DB作成確認',
 			emptyQuery: 'HiveQLが未入力です',
 			emptyTitle: 'タイトルが未入力です',
+			emptyDBname: 'データベース名が未入力です',
 			noSupportDML: '入力されたSQLはサポートしていません'
 		}
 	}
@@ -29,6 +32,7 @@ if (brlang == "ja") {
 			inputEmptyText : 'Please input HiveQL here and push the Run button.',
 			titleSelect: 'HiveQL Select',
 			titleInput: 'HiveQL Input',
+			btnCreDB: 'Create Database',
 			btnUpload: 'Upload',
 			btnSql: 'HiveQL Management',
 			btnUpd: 'HiveQL Download',
@@ -40,8 +44,10 @@ if (brlang == "ja") {
 		msg: {
 			checkInput: 'confirm',
 			checkDelete: 'confirm',
+			checkCreDB: 'confirm',
 			emptyQuery: 'HiveQL is a uninput.',
 			emptyTitle: 'Title is a uninput.',
+			emptyDBname: 'Database Name is a uninput.',
 			noSupportDML: 'HiveQL is not supported.'
 		}
 	}

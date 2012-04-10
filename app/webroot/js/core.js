@@ -28,9 +28,9 @@ function AjaxRequestFail(request,opt) {
 //プログレスバー設定
 /////////////////////////////////////////////////////////
 function SetProgress(stage,map,reduce) {
-	Ext.getCmp("inStageProgress").updateProgress(stage/100);
-	Ext.getCmp("inMapProgress").updateProgress(map/100);
-	Ext.getCmp("inRedProgress").updateProgress(reduce/100);
+	Ext.getCmp("inStageProgress").updateProgress(stage/100, stage + '%');
+	Ext.getCmp("inMapProgress").updateProgress(map/100, map + '%');
+	Ext.getCmp("inRedProgress").updateProgress(reduce/100, reduce + '%');
 }
 
 /////////////////////////////////////////////////////////

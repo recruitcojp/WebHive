@@ -2,6 +2,31 @@
 class CommonComponent extends Object {
 
 	///////////////////////////////////////////////////////////////////
+	//監査ログ出力
+	///////////////////////////////////////////////////////////////////
+	function QueryAuditLogWrite($user_id,$query){
+		if ( DIR_AUDIT_LOG == "" ){ return 1; }
+		if ( ! is_dir(DIR_AUDIT_LOG) ){ return 1; }
+
+		//監査ログ
+		$today = getdate();
+		$audit_log_file=sprintf("%s/webhive_query.log",DIR_AUDIT_LOG);
+		$ymdhms=sprintf("%04d/%02d/%02d %02d:%02d:%02d",
+			$today['year'],$today['mon'],$today['mday'],
+			$today['hours'],$today['minutes'],$today['seconds']);
+
+		//改行置換
+		$query2=ereg_replace("\t"," ",$query);
+		$query2=ereg_replace("\r|\n","%n",$query2);
+
+		//監査ログ出力
+		if ( !($fp=fopen($audit_log_file,"a")) ){ return 1; }
+		fputs($fp,"$ymdhms\t$user_id\t$query2\n");
+		fclose($fp);
+		return 0;
+	}
+
+	///////////////////////////////////////////////////////////////////
 	//ディレクトリ作成
 	///////////////////////////////////////////////////////////////////
 	function MakeDirectory($u_userid){
@@ -90,7 +115,7 @@ class CommonComponent extends Object {
 	function HiveBefore($u_userid,$u_query){
 
 		//ユーザ情報検索
-                $users=$this->Users->find('all', array('conditions' => "username='$u_userid'"));
+		$users=$this->Users->find('all', array('conditions' => "username='$u_userid'"));
 
 		//ユーザ情報設定
 		if ( count($users) == 0 ){
@@ -106,18 +131,18 @@ class CommonComponent extends Object {
 		}
 
 		//権限チェック
-                if ( CommonComponent::CheckSQLAuth($u_auth,$u_query) != 0 ){
-                        return array(1,"","","");
-                        return;
-                }
+		if ( CommonComponent::CheckSQLAuth($u_auth,$u_query) != 0 ){
+			return array(1,"","","");
+			return;
+		}
 
-                //接続先Hive Server設定
-                $hive_host=HIVE_HOST;
-                $hive_port=HIVE_PORT;
+		//接続先Hive Server設定
+		$hive_host=HIVE_HOST;
+		$hive_port=HIVE_PORT;
 		$hive_database="";
-                if ( $u_host != "" ){ $hive_host=$u_host; }
-                if ( $u_port != "" ){ $hive_port=$u_port; }
-                if ( $u_database != "" ){ $hive_database=$u_database; }
+		if ( $u_host != "" ){ $hive_host=$u_host; }
+		if ( $u_port != "" ){ $hive_port=$u_port; }
+		if ( $u_database != "" ){ $hive_database=$u_database; }
 		return array(0,$hive_host,$hive_port,$hive_database);
 	}
 

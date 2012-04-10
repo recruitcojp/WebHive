@@ -38,7 +38,7 @@ class ApisController extends AppController {
 			$querys=$this->Runhists->find('all', array( 'conditions' => $conditions, 'order' => 'created desc','limit'=>100));
 			$total=count($querys);
 			for($i=0; $i<$total; $i++){
-				$dt=date("Y/m/d h:i",strtotime($querys[$i]['Runhists']['created']));
+				$dt=date("Y/m/d H:i",strtotime($querys[$i]['Runhists']['created']));
 				$u_rsts=$querys[$i]['Runhists']['rsts'];
 				$u_rid=$querys[$i]['Runhists']['rid'];
 
@@ -80,7 +80,7 @@ class ApisController extends AppController {
 			//最新クエリ
 			if ( $u_qid != "" ){
 				$querys=$this->Hiveqls->findById($u_qid);
-				$dt=date("Y/m/d h:i",strtotime($querys['Hiveqls']['created']));
+				$dt=date("Y/m/d H:i",strtotime($querys['Hiveqls']['created']));
 				$datas[]=array(
 					"id"=>$querys['Hiveqls']['id'], 
 					"username"=>$querys['Hiveqls']['username'], 
@@ -100,7 +100,7 @@ class ApisController extends AppController {
 			$total=count($querys);
 			for($i=0; $i<$total; $i++){
 				if (  $querys[$i]['Queryhists']['created'] == "" ){ continue; }
-				$dt=date("Y/m/d h:i",strtotime($querys[$i]['Queryhists']['created']));
+				$dt=date("Y/m/d H:i",strtotime($querys[$i]['Queryhists']['created']));
 				$datas[]=array(
 					"id"=>"",
 					"username"=>$querys[$i]['Queryhists']['username'], 
@@ -121,7 +121,7 @@ class ApisController extends AppController {
 			$querys=$this->Hiveqls->find('all', array( 'conditions' => $conditions, 'order' => 'created desc','limit'=>100));
 			$total=count($querys);
 			for($i=0; $i<$total; $i++){
-				$dt=date("Y/m/d h:i",strtotime($querys[$i]['Hiveqls']['created']));
+				$dt=date("Y/m/d H:i",strtotime($querys[$i]['Hiveqls']['created']));
 				$datas[]=array(
 					"id"=>$querys[$i]['Hiveqls']['id'], 
 					"username"=>$querys[$i]['Hiveqls']['username'], 
@@ -150,7 +150,12 @@ class ApisController extends AppController {
 		}
 
 		//パラメータ解析
-		$u_userid=$this->params['form']['u'];
+		if ( isset( $this->params['form']['u'] ) ){
+			$u_userid=$this->params['form']['u'];
+		}else{
+			$u_userid="";
+		}
+		//$this->log("parameter=[$u_userid]",LOG_DEBUG);
 		if( $u_userid == "" ){
 			$this->set("result" , array("result" => "parameter error"));
 			return;
@@ -257,6 +262,47 @@ class ApisController extends AppController {
 		}
 
 		$this->set("result" , array("result"=>"ok", "qid"=>$u_id));
+	}
+
+	///////////////////////////////////////////////////////////////////
+	//データベース作成
+	///////////////////////////////////////////////////////////////////
+	function credb() {
+		App::import('Sanitize');
+		//ajaxリクエスト以外
+		if( !$this->RequestHandler->isAjax() ) {
+			$this->set("result" , array("result" => "not ajax"));
+			return;
+		}
+
+		//パラメータ解析
+		$u_userid=$this->params['form']['u'];
+		$u_dbname=strip_tags(htmlspecialchars_decode($this->params['form']['name']), ENT_QUOTES);
+		if ( $u_userid == "" or $u_dbname == "" ){
+			$this->set("result" , array("result" => "parameter error"));
+			return;
+		}
+
+		//事前処理
+		$u_query="create database $u_dbname;";
+		list($res,$hive_host,$hive_port,$hive_database)=CommonComponent::HiveBefore($u_userid,$u_query);	
+		if ( $res != 0 ){
+			$this->set("result" , array("result" => "permission error"));
+			return;
+		}
+
+		//クエリ監査ログ出力
+		CommonComponent::QueryAuditLogWrite($u_userid,$u_query);
+
+		//データベース作成
+		$cmd=CMD_PHP . " " . CMD_HIVE_CREDB . " $hive_host $hive_port $u_dbname";
+		exec("$cmd",$result,$retval);
+		$this->log("CMD=$cmd => $retval",LOG_DEBUG);
+		if ( $retval == 0 ){
+			$this->set("result" , array("result" => "ok"));
+			return;
+		}
+		$this->set("result" , array("result" => "execute error"));
 	}
 
 	///////////////////////////////////////////////////////////////////
@@ -428,6 +474,9 @@ class ApisController extends AppController {
 			return;
 		}
 		$runlog['Runhists']['id'] = $this->Runhists->getLastInsertID();
+
+		//クエリ監査ログ出力
+		CommonComponent::QueryAuditLogWrite($u_userid,$u_query);
 
 		//HiveQLをバックグラウンド実行するか判定
 		$bg_flg=0;
