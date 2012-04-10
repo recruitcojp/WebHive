@@ -29,16 +29,16 @@
 　(*)AWS Elastic MapReduce Amazonでの動作も確認済みです。
 
 本ツールでの動作確認済みブラウザは以下となります。
-　・Internet Explorer 8 （Internet Explorer 7 では動作しません）
-　・Mozilla Firefox 3.6
-　・Chrome 9
+　・Internet Explorer 8/9 （Internet Explorer 7 では動作しません）
+　・Mozilla Firefox 3.6/ Firefox 11
+　・Chrome 9 / Chrome 17
 　・Opera 11
 
 WebHive配布アーカイブの中には、以下のソフトウェアが含まれています。それぞれの
 著作物に対する権利については、下記ＵＲＬをご覧ください。
 　・CakePHP 1.3.3 (http://cakephp.jp/)
-　・ExtJS 3.3.1 (http://www.extjs.co.jp/)
-　・hive 0.6 PHP library
+　・ExtJS 4.0.7 (http://www.extjs.co.jp/)
+　・hive 0.7 PHP library
 
 ---------------------------------------------------------------------------
 ■ご利用条件

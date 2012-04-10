@@ -4,13 +4,10 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title><?php echo APP_TITLE ?></title>
 <link rel="stylesheet" type="text/css" href="/WebHive/ext/resources/css/ext-all.css" />
-<script type="text/javascript" src="/WebHive/ext/adapter/ext/ext-base.js"></script>
-<script type="text/javascript" src="/WebHive/ext/ext-all.js"></script>
+<link rel="stylesheet" type="text/css" href="/WebHive/css/progress-bar.css" />
+<script type="text/javascript" src="/WebHive/ext/bootstrap.js"></script>
 <script type="text/javascript" src="/WebHive/js/config.js"></script>
 <script type="text/javascript" src="/WebHive/js/core.js"></script>
-<script type="text/javascript" >
-<?php echo $this->element('ui',array("user_auth"=>$user['User']['authority'], "upload_flg"=>FILE_UPLOAD_FLG)); ?>
-</script>
 <style TYPE="text/css">
 <!--
 	.details {background-image: url(/WebHive/img/details.gif) !important;}
@@ -19,13 +16,16 @@
 	.preview-hide {background-image: url(/WebHive/img/preview-hide.gif) !important;}
 -->
 </style>
-</head>
-<body>
 <script type="text/javascript">
 //<![CDATA[
 <?php echo "var userid='".$user['User']['username']."';\n"; ?>
 //]]>
 </script>
+<script type="text/javascript" >
+<?php echo $this->element('ui',array("user_auth"=>$user['User']['authority'], "upload_flg"=>FILE_UPLOAD_FLG)); ?>
+</script>
+</head>
+<body>
 <div id="header" style="padding:3px;font-weight:normal;font-size:12px;color:#15428b;" align="right">
 <?php echo $user['User']['username']."さん"; ?>
 &nbsp; <a href="/WebHive/users/logout">LOGOUT</a>
