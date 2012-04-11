@@ -28,36 +28,18 @@ $hive_port=$argv[2];
 print("default\n");
 
 ///////////////////////////////////////////////////////////////////
-// Hive接続
-///////////////////////////////////////////////////////////////////
-$transport = new TSocket($hive_host,$hive_port);
-$transport->setSendTimeout(HIVE_SEND_TIMEOUT);
-$transport->setRecvTimeout(HIVE_RECV_TIMEOUT);
-$protocol = new TBinaryProtocol($transport);
-$client = new ThriftHiveClient($protocol);
-$transport->open();
-
 //データベース名取得
-$shell_ret=hive_exec($client,"show databases");
-
-$transport->close();
-
-exit($shell_ret);
-
-
 ///////////////////////////////////////////////////////////////////
-// HiveQL実行
-///////////////////////////////////////////////////////////////////
-function hive_exec($client,$sql) {
+$shell_ret=0;
+try{
+	$transport = new TSocket($hive_host,$hive_port);
+	$transport->setSendTimeout(HIVE_SEND_TIMEOUT);
+	$transport->setRecvTimeout(HIVE_RECV_TIMEOUT);
+	$protocol = new TBinaryProtocol($transport);
+	$client = new ThriftHiveClient($protocol);
+	$transport->open();
 
-	// HiveQL実行
-	try{
-		$client->execute("$sql");
-	}catch(Exception $e){
-		$msg=$e->getMessage();
-		//print("ERR:$msg\n");
-		return 1;
-	}
+	$client->execute("show databases");
 
 	// HiveQL結果出力
 	while( ($arr=$client->fetchN(10000)) ){
@@ -67,7 +49,13 @@ function hive_exec($client,$sql) {
 		}
 	}
 
-	return 0;
+	$transport->close();
+
+}catch(Exception $e){
+	$msg=$e->getMessage();
+	$shell_ret=1;
 }
+
+exit($shell_ret);
 
 ?>

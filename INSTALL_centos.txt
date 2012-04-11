@@ -162,9 +162,8 @@ https://github.com/recruitcojp/WebHive/
 5.5. ディレクトリの設定を行う。
 # mkdir /var/www/html/WebHive/request
 # mkdir /var/www/html/WebHive/result
+# mkdir /var/www/html/WebHive/audit
 # chown -R apache:apache /var/www/html/WebHive
-# cd /var/www/html/WebHive/app/webroot
-# ln -s /var/www/html/WebHive/result
 
 
 6. ブラウザよりユーザ登録を行う。
@@ -183,9 +182,9 @@ http://xxxxxxxxxx/WebHive/users/add
 3 * * * * /var/www/html/WebHive/app/modules/log_delete.sh > /var/www/html/WebHive/app/tmp/logs/log_delete.out 2>&1
 ※毎時３分にログパージスクリプトを起動する。
 
-8. cakePHPログのローテーション設定を行う。
+8. cakePHPログ/アプリログのローテーション設定を行う。
 # vi /etc/logrotate.d/cakephp
-/var/www/html/WebHive/app/tmp/logs/*.log {
+/var/www/WebHive/app/tmp/logs/*.log /var/www/html/WebHive/audit/*.log {
     daily
     rotate 7
     missingok
