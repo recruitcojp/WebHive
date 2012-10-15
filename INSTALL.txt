@@ -1,0 +1,244 @@
+【はじめに】
+下記環境にて動作確認を実施しました。
+
+　RedHat6.2
+　apache 2.2
+  PHP 5.3.3
+  MySQL 5.1
+
+【導入手順】
+1. WebHiveの実行に必要なパッケージを導入する。
+下記パッケージが未導入の場合はインストールして下さい。
+
+【phpパッケージ】
+php-5.3.3-3.el6_2.6.x86_64
+php-devel-5.3.3-3.el6_2.6.x86_64
+php-common-5.3.3-3.el6_2.6.x86_64
+php-pear-1.9.4-4.el6.noarch
+php-cli-5.3.3-3.el6_2.6.x86_64
+php-gd-5.3.3-3.el6_2.6.x86_64
+php-process-5.3.3-3.el6_2.6.x86_64
+php-mysql-5.3.3-3.el6_2.6.x86_64
+php-pdo-5.3.3-3.el6_2.6.x86_64
+php-mbstring-5.3.3-3.el6_2.6.x86_64
+php-ldap-5.3.3-3.el6_2.6.x86_64  (*)LDAPを利用する場合に必要
+
+【apacheパッケージ】
+httpd-2.2.15-15.el6.x86_64
+
+【MySQLパッケージ(WebHiveリポジトリにMySQLを利用する場合)】
+mysql-server-5.1.52-1.el6_0.1.x86_64
+mysql-libs-5.1.52-1.el6_0.1.x86_64
+mysql-5.1.52-1.el6_0.1.x86_64
+php-mysql-5.3.3-3.el6_2.6.x86_64
+
+1.1 パッケージ導入方法(例)
+# yum install yum install php php-pear php-mbstring
+# yum install yum install php-mysql
+# yum install yum install postgresql-libs postgresql postgresql-server php-pgsql
+# yum install yum install php-ldap
+
+1.2 パッケージ導入確認方法(例)
+# rpm -qa <パッケージ名>
+
+
+2. WebHiveリポジトリの設定を行う。
+
+2.1. WebHiveリポジトリにMySQLを利用する場合
+(1)MySQLの起動と自動起動設定
+# /etc/init.d/mysqld start
+# chkconfig mysqld on
+# chkconfig --list mysqld
+
+(2)データベース作成とユーザ登録／権限付与
+# mysql -u root -p
+mysql> create database <DB名>;
+mysql> GRANT ALL PRIVILEGES ON <DB名>.* to <ユーザ名>@localhost identified by '<パスワード>';
+mysql> flush privileges;
+
+(3)作成したDBに接続できるのを確認する。
+# mysql -u <ユーザ名> -p<パスワード> <DB名>
+
+(4)作成したDBでcreate_mysql.sqlを実行する。
+mysql> source create_mysql.sql
+
+2.2. WebHiveリポジトリにPostgreSQLを利用する場合
+
+(1)PostgreSQLのデータベースクラスタ初期化
+# su - postgres
+# initdb -D /var/lib/pgsql/data --encoding=UTF8 --no-locale
+
+(2)PostgreSQLの起動と自動起動設定
+# /etc/init.d/postgresql start
+# chkconfig postgresql on
+# chkconfig --list postgresql
+
+(3)ユーザ作成
+# createuser -S -R -D -P <ユーザ名>
+ -S：スーパーユーザーになれません。
+ -R：新しいロールの作成を禁止します。
+ -D：データーベースの作成を禁止します。
+ -P：パスワードのプロンプトを表示します。
+# psql -c "select usename from pg_user"
+
+(4)DB作成
+# createdb -O <ユーザ名> <DB名>
+# psql -l
+
+(5)接続設定
+/var/lib/pgsql/data/pg_hba.conf
+前)host    all         all         127.0.0.1/32         trust
+後)host    <DB名>      <ユーザ名>  127.0.0.1/32         md5
+# /etc/init.d/postgresql restart
+
+(6)作成したDBに接続できるのを確認する。
+# psql -W -h localhost -p 5432 -U <ユーザ名> <DB名>
+xxx=> select current_schema();			・・・カレントスキーマが正しいのを確認
+
+(7)テーブルとシーケンスを作成する。
+xxx=> \i create_postgresql.sql
+
+
+3. Apacheの設定を変更する。
+# vi httpd.conf
+    AllowOverride All		<==.htaccessを読み込むように設定
+# /etc/init.d/httpd restart
+
+
+4. WebHiveを導入する。
+4.1. WebHiveパッケージダウンロード
+https://github.com/recruitcojp/WebHive/
+
+4.2. WebHiveインストール
+# cd /var/www/html
+# tar zxvf recruitcojp-WebHive-*******.tar.gz
+# mv recruitcojp-WebHive-******* WebHive
+# chown -R apache:apache WebHive
+
+4.3. WebHiveのデータベース接続設定
+環境に合わせてドライバ、DB名、ユーザ名、パスワードを変更する。
+
+(1)WebHiveリポジトリがMySQLの場合
+# cd /var/www/html/WebHive/app/config
+# cp database.php.mysql database.php
+# vi database.php
+        var $default = array(
+                'driver' => 'mysql',
+                'persistent' => false,
+                'host' => 'localhost',
+                'login' => 'ユーザ名',
+                'password' => 'パスワード',
+                'database' => 'DB名',
+                'prefix' => '',
+        );
+
+(2)WebHiveリポジトリがPostgreSQLの場合
+# cd /var/www/html/WebHive/app/config
+# cp database.php.postgresql database.php
+# vi database.php
+        var $default = array(
+                'connect' => 'pg_connect',
+                'driver' => 'postgres',
+                'persistent' => false,
+                'host' => 'localhost',
+                'port' => 'ポート番号',
+                'login' => 'ユーザ名',
+                'password' => 'パスワード',
+                'database' => 'DB名',
+                'encoding'=>'utf-8',
+                'prefix' => '',
+        );
+
+4.4. WebHiveの設定を行う。
+# cd /var/www/html/WebHive/app/config
+# vi app.php
+
+　APP_TITLE		：変更不要
+　USER_ADMIN		：0=未認証状態でユーザ管理画面表示を許可 1=admin権限でのみ表示可能
+　DIR_REQUEST		：リクエストファイルの格納先
+　DIR_RESULT		：結果ファイルの格納先
+　DIR_ARCH_LIB		：PHPアーカイブライブラリ保存先
+　DIR_AUDIT_LOG		：監査ログファイルの格納先
+　DIR_ENTITY		：hive構成情報のデータ格納先
+　CMD_HADOOP		：hadoopコマンドのパス
+　CMD_HIVE		：hiveコマンドのパス
+　CMD_HIVE_SHELL	：hiveコマンド実行スクリプトのパス
+　CMD_PHP		：phpコマンドのパス
+　CMD_ZIP		：zipコマンドのパス
+　HIVE_DATABASE		：hiveデータベースのデフォルト
+　OUTPUT_FILE_MAX	：結果ファイルの最大サイズ
+　OUTPUT_FILE_LIMIT	：結果ファイルの最大数
+　INFORMATION_FILE	：WebHive変更履歴
+　TIPS_FILE		：変更不要
+　TIPS_URL		：TIPへのリンク先
+　SQL_AUTH_ADMIN	：ADMIN権限ユーザの許可クエリ
+　SQL_AUTH_GUEST	：GUEST権限ユーザの許可クエリ
+　SQL_AUTH_SELECT	：SELECT権限ユーザの許可クエリ
+　SQL_EXPLAIN_EXCLUDE	：EXPLAINチェックで除外するコマンド
+　FILE_UPLOAD_FLG	：1=ファイルアップロード機能可能 0=ファイルアップロード機能不可
+　LDAP_HOST		：LDAPサーバのIPアドレス
+　LDAP_RDN 		：LDAPのRDN（例：uid=%USER%,ou=hive,dc=hoge,dc=com）
+　LDAP_AUTH		：LDAP認証したユーザの権限(1=admin,2=guest,3=select)
+
+
+4.5. ディレクトリの作成を行う。
+# mkdir /var/www/html/WebHive/request
+# mkdir /var/www/html/WebHive/result
+# mkdir /var/www/html/WebHive/audit
+# mkdir /var/www/html/WebHive/entity
+# chown -R apache:apache /var/www/html/WebHive
+
+
+5. ブラウザよりユーザ登録を行う。
+http://xxxxxxxxxx/WebHive/users/add
+
+　Authority：１=全権限あり、2=参照専用ユーザ、3=登録HiveQLのみ実行可能
+　hive_host：未使用
+　hive_port：未使用
+　hive_database：使用するhiveデータベースを限定する場合に指定する
+
+　ユーザ登録後に「http://xxxxxxxxxx/WebHive」へアクセスして登録したユーザでログインできるのを確認する。
+　※初回ユーザ登録後は管理者以外でユーザ管理画面を表示できなようにapp.confのUSER_ADMINパラメータを1にして下さい。
+
+
+6.  HiveQLリクエストファイル、処理結果ファイルのパージ設定を行う。
+# crontab -e
+3 * * * * /var/www/html/WebHive/app/modules/log_delete.sh > /var/www/html/WebHive/app/tmp/logs/log_delete.out 2>&1
+※毎時３分にログパージスクリプトを起動する。
+
+7. cakePHPログ/アプリログのローテーション設定を行う。
+# vi /etc/logrotate.d/cakephp
+/var/www/WebHive/app/tmp/logs/*.log /var/www/html/WebHive/audit/*.log {
+    daily
+    rotate 7
+    missingok
+    notifempty
+}
+
+8. PHPのメモリ制限を設定する。
+ファイルアップロードの最大サイズ、結果ファイルの最大サイズ(OUTPUT_FILE_MAX)を考慮して適切な値を設定してください。
+
+# vi /etc/php.ini
+memory_limit 128M
+post_max_size 8M
+upload_max_filesize 5M
+
+9.hive定義情報データ作成（＊hive定義情報表示機能を利用しないのであれば、下記手順は省略可能）
+
+(1)hive定義情報データ作成スクリプトの変更
+hive定義情報の配置場所、環境変数（HADOOP_HOME、HIVE_HOME等）を環境に合わせて変更してください。
+# vi /var/www/html/WebHive/app/modules/create_entity.sh
+
+(2)hiveテーブル名変換ファイル、カラム名変換ファイル
+# vi /var/www/html/WebHive/entity/conf/table.dat
+# vi /var/www/html/WebHive/entity/conf/desc.dat
+
+table.datは"hiveテーブル名<tab>日本語名称<LF>"のTSVファイル。
+desc.datは"hiveテーブル名<tab>カラム名<tab>日本語名称<tab>備考<LF>"のTSVファイル。
+
+(3)クーロン登録
+hive定義情報表示画面が利用するhive構成情報データを定期的に更新してください。
+# crontab -e
+0 2 * * * /var/www/html/WebHive/app/modules/create_entity.sh > /var/www/html/WebHive/app/tmp/logs/create_entity.out 2>&1
+
+

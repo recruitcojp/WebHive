@@ -1,0 +1,136 @@
+/* main styles */
+body, table, tr, td {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 10px;
+}
+
+body {
+	background-color: #FFFFFF;
+	background-repeat: repeat-y;
+}
+
+/* links */
+a, a:active, a:visited {
+	color: blue;
+	text-decoration: none;
+}
+a:hover {
+	text-decoration: underline;
+	color: #333333;
+}
+
+.linkEditMain, .linkEditMain:visited, .linkEditMain:active {
+	color: blue;
+	text-decoration: none;
+	font-weight: bold;
+}
+
+.linkEditMain:hover {
+	color: blue;
+	text-decoration: underline;
+	font-weight: bold;
+}
+
+.linkOverDark, .linkOverDark:visited, .linkOverDark:active {
+	color: white;
+	text-decoration: none;
+}
+
+.linkOverDark:hover {
+	color: white;
+	text-decoration: underline;
+}
+
+/* text styles */
+.textError {
+	font-size: 16px;
+	font-weight: bold;
+	color: red;
+}
+
+.textInfo {
+	font-size: 16px;
+	font-weight: bold;
+	color: black;
+}
+
+.textHeader {
+	font-size: 12px;
+	font-weight: bold;
+}
+
+.textHeaderDark {
+	font-size: 12px;
+	color: #ffffff;
+}
+
+.textSubHeaderDark, .textSubHeaderDark:visited {
+	font-size: 10px;
+	color: #ffffff;
+	font-weight: bold;
+}
+
+.textArea {
+	font-size: 12px;
+}
+
+.textAreaNotes {
+	font-size: 12px;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+
+.textEditTitle {
+	font-size: 10px;
+	font-weight: bold;
+}
+
+.textMenuHeader {
+	color: #ffffff;
+	background-color: #9C9C9C;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 10px;
+	font-weight: bold;
+}
+
+.textMenuItem {
+	background-color: #f5f5f5;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 10px;
+}
+
+.textMenuSubItem {
+	background-color: #ffffff;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 10px;
+}
+
+.textMenuItemSelected {
+	background-color: #E1E1E1;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 10px;
+}
+
+.txtErrorTextBox {
+	border: 2px solid #ff0000;
+}
+
+/* tabs */
+td.tab {
+    border-top: 1px solid #999;
+    border-right: 1px solid #666;
+    border-left: 1px solid #999;
+    border-bottom: none;
+    border-radius: 2px;
+    -moz-border-radius: 2px;
+}
+
+table.tabs      {
+    border-top: none;
+    border-right: none;
+    border-left: none;
+    border-bottom: 1px solid #666;
+}
+
+@media print {
+	.noprint { display:none }
+}

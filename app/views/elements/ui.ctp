@@ -1,3 +1,6 @@
+Ext.Loader.setConfig({enabled: true});
+Ext.Loader.setPath('Ext.ux', '/WebHive/ext/ux/');
+
 Ext.require([
 	'Ext.form.field.ComboBox',
 	'Ext.container.*',
@@ -5,7 +8,9 @@ Ext.require([
 	'Ext.data.*',
 	'Ext.util.*',
 	'Ext.ProgressBar.*',
-	'Ext.state.*'
+	'Ext.state.*',
+	'Ext.window.Window',
+	'Ext.ux.FieldReplicator'
 ]);
 
 Ext.onReady(function() {
@@ -159,23 +164,18 @@ Ext.onReady(function() {
 	});
 
 	///////////////////////////////////////////////////////////////////
-	// HiveQL入力パネル
+	// クエリ入力
 	///////////////////////////////////////////////////////////////////
-	var inputPanel = Ext.create('Ext.Panel', {
-		height: '100%',
-		width: '100%',
-		id:'inTextarea',
-		bodyStyle: 'padding:15px',
-		title: config.ui.titleInput,
+	var inputQuery = Ext.create('Ext.Panel', {
 		xtype:'form',
-		style: 'font-family: \"Courier New\",Courier,monospace;font-weight:normal;',
-		labelWidth: 70,
-		defaultType: 'textfield',
-		items: [{
+		layout: 'column',
+		border: false,
+		width: 550,
+		items:[{
 <?php 
 if ( $user_auth==1 ){ echo "
 			id: 'inCreDatabase',
-			width: 500,
+			width: 400,
 			xtype:'form',
 			layout: 'column',
 			border: false,
@@ -193,7 +193,7 @@ if ( $user_auth==1 ){ echo "
 			store: storeDatabase,
 			fieldLabel: 'Database',
 			value:'default',
-			width: 500,
+			width: 300,
 			editable: false,
 			triggerAction: 'all',
 			mode: 'local',
@@ -218,78 +218,50 @@ if ( $user_auth==1 ){ echo "
 			xtype: 'textarea',
 			<?php if ( $user_auth==3 ){ echo "readOnly: true,\n"; } ?>
 			width: 500,
-			height: 80,
+			height: 125,
 			fieldLabel: 'HiveQL'
-		},
-			new Ext.form.CheckboxGroup({
-			xtype:'fieldset',
-			width: 500,
-			fieldLabel: 'Output',
-			defaultType: 'checkbox',
-			layout: 'column',
-			style:'margin:1px;',
-			style: 'font-family: \"Courier New\",Courier,monospace;font-weight:normal;font-size:12px;',
-			defaults: {columnWidth: '.32', border: false },
-			items: [
-				{id:'inCompress', name:'inCompress', boxLabel:'zip圧縮', checked: true },
-				{id:'inColumn', name:'inColumn', boxLabel:'カラム名の有無', checked: true }
-			]
-			})
-		,{
-			id: 'inStageProgressForm',
-			width: 500,
-			xtype:'form',
-			layout: 'column',
-			border: false,
-			margin: '5 0 0 0',
-			items: [
-				{id:'txtStageProgress', name:'txtStageProgress', xtype:'displayfield', fieldLabel: 'Stage(%)'},
-				{id:'inStageProgress',  name:'inStageProgress',  xtype:'progressbar', width:390, text:'0%'}
-			]
 		},{
-			id: 'inMapProgressForm',
-			width: 500,
-			xtype:'form',
-			layout: 'column',
-			border: false,
-			margin: '5 0 0 0',
-			items: [
-				{id:'txtMapProgress', name:'txtMapProgress', xtype:'displayfield', fieldLabel: 'Map(%)'},
-				{id:'inMapProgress',  name:'inMapProgress',  xtype:'progressbar', width:390, text:'0%'}
-			]
-		},{
-			id: 'inRedProgressForm',
-			width: 500,
-			xtype:'form',
-			layout: 'column',
-			border: false,
-			margin: '5 0 0 0',
-			items: [
-				{id:'txtRedProgress', name:'txtRedProgress', xtype:'displayfield', fieldLabel: 'Reduce(%)'},
-				{id:'inRedProgress',  name:'inRedProgress',  xtype:'progressbar', width:390, text:'0%'}
-			]
-		}],
-		fbar: [{
+			id: 'inQueryButton',
+			xtype: 'button',
+			iconCls:'query-button',
+			margin: '0 0 0 3',
+			listeners:{
+				click:  function(button,event){
+					HiveQL = Ext.getCmp('inHiveQL').getValue();
+					Ext.getCmp('HiveQLMessage').setValue(HiveQL);
+					QueryForm.show();
+				}
+			}
+		}]
+	});
+
+	///////////////////////////////////////////////////////////////////
+	// 入力ボタン
+	///////////////////////////////////////////////////////////////////
+	var inputButton = Ext.create('Ext.Panel', {
+		xtype:'form',
+		layout: 'column',
+		border: false,
+		width: 550,
+		buttons:[{
 			xtype: 'button',
 			id:'btnRun',
-			minWidth: 100,
+			minWidth: 70,
+			//margin: '5 3 3 3',
 			text: config.ui.btnRun
 		},{
 			xtype: 'button',
-			id:'btnReset',
-			minWidth: 100,
-			text: config.ui.btnReset
-		},{
-			xtype: 'button',
 			id:'btnExplain',
-			minWidth: 100,
+			minWidth: 70,
+			//margin: '5 3 3 3',
 			text: config.ui.btnExplain
 <?php 
 if ( $user_auth==1 or $user_auth==2){ echo "
 		},{
 			xtype: 'button',
 			id:'btnReg',
-			minWidth: 100,
+			minWidth: 70,
+			//margin: '5 3 3 3',
 			text: config.ui.btnReg
 ";
 }
@@ -297,7 +269,8 @@ if ( $user_auth==1 ){ echo "
 		},{
 			xtype: 'button',
 			id:'btnSql',
-			minWidth: 100,
+			minWidth: 70,
+			//margin: '5 3 3 3',
 			text: config.ui.btnSql
 ";
 }
@@ -305,11 +278,111 @@ if ( $user_auth==1 and $upload_flg==1 ){ echo "
 		},{
 			xtype: 'button',
 			id:'btnUpload',
-			minWidth: 100,
+			minWidth: 70,
+			//margin: '5 3 3 3',
 			text: config.ui.btnUpload
 ";
 }
 ?>
+		},{
+			xtype: 'button',
+			id:'btnReset',
+			minWidth: 70,
+			//margin: '5 3 3 3',
+			text: config.ui.btnReset
+		}]
+	});
+
+	///////////////////////////////////////////////////////////////////
+	// Hive進捗状況
+	///////////////////////////////////////////////////////////////////
+	var inputProgress = Ext.create('Ext.Panel', {
+		xtype:'form',
+		layout: 'column',
+		border: false,
+		margin: '5 5 5 5',
+		width: 530,
+		items:[{
+			id: 'inTotalProgressForm',
+			width: 200,
+			xtype:'form',
+			layout: 'column',
+			border: false,
+			items: [
+				{id:'txtTotalProgress', name:'txtTotalProgress', xtype:'displayfield', width:40, fieldLabel: 'Total'},
+				{id:'inTotalProgress',  name:'inTotalProgress',  xtype:'progressbar', width:140, text:'0%'}
+			]
+		},{
+			id: 'inStageProgressForm',
+			width: 110,
+			xtype:'form',
+			layout: 'column',
+			border: false,
+			items: [
+				{id:'txtStageProgress', name:'txtStageProgress', xtype:'displayfield', width:40, fieldLabel: 'Stage'},
+				{id:'inStageProgress',  name:'inStageProgress',  xtype:'progressbar', width:50, text:'0%'}
+			]
+		},{
+			id: 'inMapProgressForm',
+			width: 110,
+			xtype:'form',
+			layout: 'column',
+			border: false,
+			items: [
+				{id:'txtMapProgress', name:'txtMapProgress', xtype:'displayfield', width:40, fieldLabel: 'Map'},
+				{id:'inMapProgress',  name:'inMapProgress',  xtype:'progressbar', width:50, text:'0%'}
+			]
+		},{
+			id: 'inRedProgressForm',
+			width: 110,
+			xtype:'form',
+			layout: 'column',
+			border: false,
+			items: [
+				{id:'txtRedProgress', name:'txtRedProgress', xtype:'displayfield', width:50, fieldLabel: 'Reduce'},
+				{id:'inRedProgress',  name:'inRedProgress',  xtype:'progressbar', width:50, text:'0%'}
+			]
+		}]
+	});
+
+
+	///////////////////////////////////////////////////////////////////
+	// HiveQL入力パネル
+	///////////////////////////////////////////////////////////////////
+	var inputPanel = Ext.create('Ext.Panel', {
+		height: '100%',
+		width: '100%',
+		id:'inTextarea',
+		bodyStyle: 'padding:5px',
+		title: config.ui.titleInput,
+		xtype:'form',
+		style: 'font-family: \"Courier New\",Courier,monospace;font-weight:normal;',
+		defaultType: 'textfield',
+		items: [{
+			id: 'inputQuery',
+			xtype:'fieldset',
+			layout: 'column',
+			title: 'Input',
+			border: false,
+			width: 550,
+			height: 230,
+			items:inputQuery
+		},{
+			id: 'inProgress',
+			xtype:'fieldset',
+			layout: 'column',
+			title: 'Progress',
+			width: 550,
+			height: 50,
+			items:inputProgress
+		},{
+			id: 'inputButton',
+			xtype:'form',
+			layout: 'column',
+			border: false,
+			width: 550,
+			height: 50,
+			items:inputButton
 		}]
 	});
 
@@ -324,7 +397,7 @@ if ( $user_auth==1 and $upload_flg==1 ){ echo "
 		activeTab: 0,
 		style: 'font-family: \"Courier New\",Courier,monospace;font-weight:normal;',
 		width: '100%',
-		height: 300,
+		height: 250,
 		items:[{
 			id:'outConsole',
 			title:'Console',
@@ -342,6 +415,7 @@ if ( $user_auth==1 and $upload_flg==1 ){ echo "
 			listeners: {activate: handleActivate},
 			xtype:'textarea',
 			readOnly: true,
+			height: '100%',
 			border: 'none'
 		},{
 			id:'outOutput',
@@ -350,6 +424,7 @@ if ( $user_auth==1 and $upload_flg==1 ){ echo "
 			listeners: {activate: handleActivate},
 			xtype:'textarea',
 			readOnly: true,
+			height: '100%',
 			border: 'none'
 		},{
 			id:'outDataView',
@@ -358,6 +433,7 @@ if ( $user_auth==1 and $upload_flg==1 ){ echo "
 			listeners: {activate: handleActivate},
 			xtype:'textarea',
 			readOnly: true,
+			height: '100%',
 			border: 'none'
 		}]
 		}]
@@ -373,19 +449,19 @@ if ( $user_auth==1 and $upload_flg==1 ){ echo "
 			items: gridPanel,
 			region: 'west',
 			split: true,
-			height: '50%',
+			height: '60%',
 			width: '50%'
 		},{
 			items: inputPanel,
 			region: 'center',
 			split: true,
-			height: '50%',
+			height: '60%',
 			width: '50%'
 		},{
 			items: outputPanel,
 			region: 'south',
 			split: true,
-			height: '50%',
+			height: '40%',
 			width: '100%'
 		}]
 	});
@@ -495,14 +571,10 @@ if ( $user_auth==1 or $user_auth==2){ echo "
 		}
 		inDB = Ext.getCmp('inDatabase').getRawValue();
 		inSQL = Ext.getCmp('inHiveQL').getValue();
-		inCMP = Ext.getCmp('inCompress').getValue();
-		inCOL = Ext.getCmp('inColumn').getValue();
-		if ( inCMP == true ){ inCMP='Z'; }else{ inCMP='N'; }
-		if ( inCOL == true ){ inCOL='C'; }else{ inCOL='N'; }
 		if (inSQL.trim() == '') {
 			Ext.Msg.alert(config.msg.checkInput, config.msg.emptyQuery);
 		} else {
-			var result = HiveExecute(inDB,inSQL,inCMP,inCOL);
+			var result = HiveExecute(inDB,inSQL);
 		}
 	});
 
@@ -517,14 +589,10 @@ if ( $user_auth==1 or $user_auth==2){ echo "
 
 		inDB = Ext.getCmp('inDatabase').getRawValue();
 		inSQL = Ext.getCmp('inHiveQL').getValue();
-		inCMP = Ext.getCmp('inCompress').getValue();
-		inCOL = Ext.getCmp('inColumn').getValue();
-		if ( inCMP == true ){ inCMP='Z'; }else{ inCMP='N'; }
-		if ( inCOL == true ){ inCOL='C'; }else{ inCOL='N'; }
 		if (inSQL.trim() == '') {
 			Ext.Msg.alert(config.msg.checkInput, config.msg.emptyQuery);
 		} else {
-			var result = HiveExplain(inDB,inSQL,inCMP,inCOL);
+			var result = HiveExplain(inDB,inSQL);
 		}
 	});
 
@@ -537,29 +605,92 @@ if ( $user_auth==1 or $user_auth==2){ echo "
 			TextOutFunc('WAR:HiveQL Running');
 			return;
 		}
+
+		Ext.getCmp('btnRun').enable();
+		Ext.getCmp('btnExplain').enable();
 		Ext.getCmp('outTab').setActiveTab('outConsole');
 		Ext.getCmp('outExplain').setValue('');
-		Ext.getCmp('outDataView').setValue('');
 		Ext.getCmp('outOutput').setValue('');
+		Ext.getCmp('outDataView').setValue('');
 		Ext.getDom('outConsole').innerHTML = '';
 		Ext.getCmp('inQid').setValue('');
 		Ext.getCmp('inTitle').setValue('');
 		Ext.getCmp('inHiveQL').setValue('');
-		SetProgress(0,0,0);
+		SetProgress(0,0,0,0);
 		HiveProcCheck_Clear();
 		storeSQL.load({params:{u:userid,q:'my'}});
-		//storeDatabase.load({ params:{ u:userid } });
 
 		sv_reqid='';
 		sv_timerid='';
 		sv_db='';
-		sv_cmp='';
-		sv_col='';
 		sv_sql='';
 		sv_func='';
 		sv_str='';
 	});
 
+
+	///////////////////////////////////////////////////////////////////
+	// クエリ入力画面
+	///////////////////////////////////////////////////////////////////
+	var QueryPanel = Ext.create('Ext.form.Panel', {
+		plain: true,
+		border: 0,
+		bodyPadding: 5,
+		layout: {
+			type: 'vbox',
+			align: 'stretch'
+		},
+		items: [{
+			xtype: 'textarea',
+			fieldLabel: 'HiveQL Input',
+			hideLabel: true,
+			id:'HiveQLMessage',
+			name: 'HiveQLMessage',
+			style: 'margin:0',
+			flex: 1
+		}]
+	});
+
+	var QueryForm = Ext.create('Ext.window.Window', {
+		title: 'HiveQL Input',
+		//collapsible: true,
+		animCollapse: true,
+		closable: false,
+		maximizable: true,
+		width: 750,
+		height: 500,
+		minWidth: 300,
+		minHeight: 200,
+		layout: 'fit',
+		items: QueryPanel,
+		dockedItems: [{
+			xtype: 'toolbar',
+			dock: 'bottom',
+			ui: 'footer',
+			layout: {
+				pack: 'center'
+			},
+			items: [{
+				minWidth: 80,
+				text: 'Commit',
+				listeners:{
+					click: function(field){
+						HiveQL = Ext.getCmp('HiveQLMessage').getValue();
+						Ext.getCmp('inHiveQL').setValue(HiveQL);
+						QueryForm.hide();
+					}
+				}
+			},{
+				minWidth: 80,
+				text: 'Cancel',
+				listeners:{
+					click: function(field){
+						QueryForm.hide();
+					}
+				}
+			}]
+		}]
+	});
 
 	///////////////////////////////////////////////////////////////////
 	//SQL選択画面のダブルクリック
@@ -579,11 +710,14 @@ if ( $user_auth==1 or $user_auth==2){ echo "
 		Ext.getCmp('inTitle').setValue(title);
 		Ext.getCmp('inHiveQL').setValue(sql);
 
-		//下部表示
+		//下部コンソール表示
 		var rfil=record.get('rfil');
 		if ( rfil != '' ){
-			msg='Result Download (' + rfil + ')';
-			TextOutFunc('INF:<a href="/WebHive/result/' + userid + '/' + rfil + '" target="_blank">' + msg + '<a>');
+			filnms = rfil.split(',');
+			for( i=0 ; i<filnms.length ; i++ ) {
+				msg='Result Download (' + filnms[i] + ')';
+				TextOutFunc('INF:<a href="/WebHive/result/' + userid + '/' + filnms[i] + '" target="_blank">' + msg + '<a>');
+			}
 		}
 		sv_reqid=record.get('rid');
 	};
@@ -625,9 +759,9 @@ if ( $user_auth==1 or $user_auth==2){ echo "
 		});
 	}
 
-	/////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////
 	// DB新規作成
-	/////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////
 	function HiveCreDB(DBname) {
 		if ( DBname == null ) { return; }
 
