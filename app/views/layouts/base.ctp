@@ -14,6 +14,7 @@
 	.preview-bottom {background-image: url(/WebHive/img/preview-bottom.gif) !important;}
 	.preview-right {background-image: url(/WebHive/img/preview-right.gif) !important;}
 	.preview-hide {background-image: url(/WebHive/img/preview-hide.gif) !important;}
+	.query-button {background-image: url(/WebHive/img/application_go.png) !important;}
 -->
 </style>
 <script type="text/javascript">
@@ -29,6 +30,8 @@
 <div id="header" style="padding:3px;font-weight:normal;font-size:12px;color:#15428b;" align="right">
 <?php echo $user['User']['username']."さん"; ?>
 &nbsp; <a href="/WebHive/users/logout">LOGOUT</a>
+&nbsp; <a href="/WebHive/entity">Hive構成情報表示</a>
+&nbsp; <a href="<?php echo TIPS_URL ?>" target=_blank>Tips集</a>
 &nbsp; <a href="/WebHive/help" onclick="window.open('/WebHive/help','_blank','width=900,height=500,scrollbars=yes'); return false;">変更履歴</a>
 &nbsp;
 </div>
