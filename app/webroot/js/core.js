@@ -1,8 +1,6 @@
 var sv_reqid='';
 var sv_timerid='';
 var sv_db='';
-var sv_cmp='';
-var sv_col='';
 var sv_sql='';
 var sv_func='';
 var sv_str='';
@@ -27,7 +25,8 @@ function AjaxRequestFail(request,opt) {
 /////////////////////////////////////////////////////////
 //プログレスバー設定
 /////////////////////////////////////////////////////////
-function SetProgress(stage,map,reduce) {
+function SetProgress(total,stage,map,reduce) {
+	Ext.getCmp("inTotalProgress").updateProgress(total/100, total + '%');
 	Ext.getCmp("inStageProgress").updateProgress(stage/100, stage + '%');
 	Ext.getCmp("inMapProgress").updateProgress(map/100, map + '%');
 	Ext.getCmp("inRedProgress").updateProgress(reduce/100, reduce + '%');
@@ -142,7 +141,7 @@ function HiveDelete_fin(result,opt) {
 /////////////////////////////////////////////////////////
 // HiveQLのexplain
 /////////////////////////////////////////////////////////
-function HiveExplain(inDB, inSql,inCmp,inCol) {
+function HiveExplain(inDB, inSql) {
 	if ( inSql == null ) { return; }
 	if ( sv_timerid != '' ){
 		TextOutFunc("WAR:HiveQL Running");
@@ -150,13 +149,16 @@ function HiveExplain(inDB, inSql,inCmp,inCol) {
 	}
 	sv_db=inDB;
 	sv_sql=inSql;
-	sv_cmp=inCmp;
-	sv_col=inCol;
 	sv_func='explain';
 	CheckHiveQL();
 }
 
 function HiveExplain_req() {
+
+	Ext.getCmp('btnRun').disable();
+	Ext.getCmp('btnExplain').disable();
+	TextOutFunc("INF:HiveQL Check start");
+	sv_reqid='';
 
 	Ext.Ajax.request({
 		url:'/WebHive/apis/explain',
@@ -164,8 +166,6 @@ function HiveExplain_req() {
 		params:{
 			u:userid,
 			d:sv_db,
-			z:sv_cmp,
-			c:sv_col,
 			q:sv_sql
 		},
 		success:HiveExplain_fin,
@@ -175,19 +175,28 @@ function HiveExplain_req() {
 }
 
 function HiveExplain_fin(result,opt) {
+	Ext.getCmp('btnRun').enable();
+	Ext.getCmp('btnExplain').enable();
 	var res = Ext.decode(result.responseText);
 	if ( res.result == "unknown" || res.result == "check" || res.result == "ok" ){
 		sv_reqid=res.id;
+		TextOutFunc("INF:HiveQL Check OK");
 		HiveDownload("exp");
 		return;
 	}
-	TextOutFunc("ERR:HiveQL Explain error(" + res.result + ")");
+	if ( res.result == "query error" ){
+		sv_reqid=res.id;
+		TextOutFunc("ERR:HiveQL Check error");
+		HiveDownload("exp");
+		return;
+	}
+	TextOutFunc("ERR:HiveQL Check error(" + res.result + ")");
 }
 
 /////////////////////////////////////////////////////////
 // HiveQL実行
 /////////////////////////////////////////////////////////
-function HiveExecute(inDB,inSql,inCmp,inCol) {
+function HiveExecute(inDB,inSql) {
 	if ( inSql == null ) { return; }
 	if ( sv_timerid != '' ){
 		TextOutFunc("WAR:HiveQL Running");
@@ -195,48 +204,62 @@ function HiveExecute(inDB,inSql,inCmp,inCol) {
 	}
 	sv_db=inDB;
 	sv_sql=inSql;
-	sv_cmp=inCmp;
-	sv_col=inCol;
 	sv_func='execute';
 	CheckHiveQL();
 }
 
 function HiveExecute_req() {
 
+	Ext.getCmp('btnRun').disable();
+	Ext.getCmp('btnExplain').disable();
+	Ext.getCmp("outTab").setActiveTab("outConsole");
+	Ext.getCmp("outExplain").setValue("");
+	Ext.getCmp("outOutput").setValue("");
+	Ext.getCmp("outDataView").setValue("");
+	Ext.getDom("outConsole").innerHTML = "";
+	SetProgress(0,0,0,0);
+	sv_reqid='';
+
+	TextOutFunc("INF:HiveQL Check start");
 	Ext.Ajax.request({
 		url:'/WebHive/apis/explain',
 		method:'POST',
 		params:{
 			u:userid,
 			d:sv_db,
-			z:sv_cmp,
-			c:sv_col,
 			q:sv_sql
 		},
 		success:HiveExecute_fin,
 		failure:AjaxRequestFail
 	});
 
-	Ext.getCmp("outTab").setActiveTab("outConsole");
-	Ext.getCmp("outExplain").setValue("");
-	Ext.getCmp("outDataView").setValue("");
-	Ext.getDom("outConsole").innerHTML = "";
-	TextOutFunc("INF:HiveQL Request start");
-	SetProgress(0,0,0);
 }
 
 function HiveExecute_fin(result,opt) {
+
 	var res = Ext.decode(result.responseText);
 
 	if ( res.result == "unknown" ){
+		TextOutFunc("INF:HiveQL Check OK");
 		Ext.Msg.confirm('クエリ実行確認','HiveQLを実行しますか？' ,function(btn){
-			if(btn == 'yes'){ HiveRequest(res.id); }
+			if(btn == 'yes'){
+				HiveRequest(res.id); 
+			}else{
+				TextOutFunc("INF:HiveQL Request Cancel");
+				HiveRequestFinish();
+			}
 		});
 		return;
 	}
 	if ( res.result == "check" ){
+		TextOutFunc("INF:HiveQL Check OK");
 		Ext.Msg.confirm('クエリ実行確認','HiveQLを実行しますか？<br>' + res.msg ,function(btn){
-			if(btn == 'yes'){ HiveRequest(res.id); }
+			if(btn == 'yes'){
+				HiveRequest(res.id); 
+			}else{
+				TextOutFunc("INF:HiveQL Request Cancel");
+				HiveRequestFinish();
+			}
 		});
 		return;
 	}
@@ -244,8 +267,15 @@ function HiveExecute_fin(result,opt) {
 		HiveRequest(res.id);
 		return;
 	}
-	TextOutFunc("ERR:HiveQL Request error(" + res.result + ")");
-	SetProgress(100,100,100);
+	if ( res.result == "query error" ){
+		sv_reqid=res.id;
+		TextOutFunc("ERR:HiveQL Check error");
+		HiveDownload("exp");
+		HiveRequestFinish();
+		return;
+	}
+	TextOutFunc("ERR:HiveQL Check error(" + res.result + ")");
+	HiveRequestFinish();
 }
 
 /////////////////////////////////////////////////////////
@@ -253,21 +283,21 @@ function HiveExecute_fin(result,opt) {
 /////////////////////////////////////////////////////////
 function HiveRequest(id) {
 
+	TextOutFunc("INF:HiveQL Request start");
+
 	Ext.Ajax.request({
 		url:'/WebHive/apis/request',
 		method:'POST',
 		params:{
 			u:userid,
 			d:sv_db,
-			z:sv_cmp,
-			c:sv_col,
 			id:id
 		},
 		success:HiveRequest_fin,
 		failure:AjaxRequestFail
 	});
 
-	SetProgress(1,0,0);
+	SetProgress(0,0,0,0);
 	sv_timerid=1;
 }
 
@@ -277,23 +307,22 @@ function HiveRequest_fin(result,opt) {
 	if ( res.result == "ok" ){
 		TextOutFunc("INF:HiveQL Request-ID：" + res.id);
 		TextOutFunc("INF:<a href=\"javascript:void(0);\" onclick=\"HiveJobCancel()\">HiveQL Request Cancel<a>");
-		sv_timerid=setTimeout("HiveProcCheck(\"" + res.id + "\")",5000);
+		sv_timerid=setTimeout("HiveProcCheck(\"" + res.id + "\")",2000);
 		sv_reqid=res.id;
-		return;
-	}
-	if ( res.result == "fin" ){
-		TextOutFunc("INF:HiveQL normal end");
-		msg="Result Download (" + res.filnm + ")"; 
-		TextOutFunc("INF:<a href=\"/WebHive/result/" + userid + "/" + res.filnm + "\" target=\"_blank\">" + msg + "<a>");
-		SetProgress(100,100,100);
-		sv_reqid=res.id;
+	}else{
+		TextOutFunc("ERR:HiveQL Request error(" + res.result + ")");
+		HiveRequestFinish();
 		sv_timerid='';
-		return;
 	}
+}
 
-	TextOutFunc("ERR:HiveQL Request error(" + res.result + ")");
-	SetProgress(100,100,100);
-	sv_timerid='';
+/////////////////////////////////////////////////////////
+// Hiveリクエスト完了処理
+/////////////////////////////////////////////////////////
+function HiveRequestFinish(){
+	SetProgress(100,100,100,100);
+	Ext.getCmp('btnRun').enable();
+	Ext.getCmp('btnExplain').enable();
 }
 
 /////////////////////////////////////////////////////////
@@ -315,24 +344,42 @@ function HiveProcCheck(id) {
 function HiveProcCheck_fin(result,opt) {
 	var res = Ext.decode(result.responseText);
 
-	if ( res.result == "ok" ){
-		TextOutFunc("INF:HiveQL normal end");
-		msg="Result Download (" + res.filnm + ")"; 
-		TextOutFunc("INF:<a href=\"/WebHive/result/" + userid + "/" + res.filnm + "\" target=\"_blank\">" + msg + "<a>");
-		SetProgress(100,100,100);
-		sv_timerid='';
-		return;
-	}
 	if ( res.result == "progress" ){
-		SetProgress(res.stage,res.map,res.reduce);
+		SetProgress(res.total, res.stage, res.map, res.reduce);
 		if ( sv_timerid != "" ){
 			sv_timerid=setTimeout("HiveProcCheck(\"" + res.id + "\")",5000);
 		}
 		return;
 	}
 
+	if ( res.result == "ok" ){
+		filnm=res.filnm;
+		filnms = filnm.split(',');
+		for( i=0 ; i<filnms.length ; i++ ) {
+			msg="Result Download (" + filnms[i] + ")"; 
+			TextOutFunc("INF:<a href=\"/WebHive/result/" + userid + "/" + filnms[i] + "\" target=\"_blank\">" + msg + "<a>");
+		}
+		TextOutFunc("INF:HiveQL normal end");
+		HiveRequestFinish();
+		sv_timerid='';
+		return ;
+	}
+
+	if ( res.result == "warning" ){
+		filnm=res.filnm;
+		filnms = filnm.split(',');
+		for( i=0 ; i<filnms.length ; i++ ) {
+			msg="Result Download (" + filnms[i] + ")"; 
+			TextOutFunc("INF:<a href=\"/WebHive/result/" + userid + "/" + filnms[i] + "\" target=\"_blank\">" + msg + "<a>");
+		}
+		TextOutFunc("WAR:file size limit");
+		HiveRequestFinish();
+		sv_timerid='';
+		return ;
+	}
+
 	TextOutFunc("ERR:HiveQL execute error(" + res.result + ")");
-	SetProgress(100,100,100);
+	HiveRequestFinish();
 	sv_timerid='';
 }
 
@@ -361,7 +408,7 @@ function HiveJobCancel() {
 function HiveJobCancel_fin(result,opt) {
 	var res = Ext.decode(result.responseText);
 	TextOutFunc("INF:HiveQL Job Cancel (" + res.result + ")");
-	SetProgress(100,100,100);
+	HiveRequestFinish();
 }
 
 /////////////////////////////////////////////////////////

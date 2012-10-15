@@ -43,6 +43,27 @@ class CommonComponent extends Object {
 	}
 
 	///////////////////////////////////////////////////////////////////
+	//HiveQL結果ファイルの一覧を返す
+	///////////////////////////////////////////////////////////////////
+	function GetResultFiles($fin_file) {
+		$filnms="";
+
+		if ( !file_exists($fin_file) ){ return ""; }
+		if ( !($fp=fopen($fin_file,"r")) ){ return ""; }
+		while(!feof($fp)){
+			$w = fgets($fp,10240);
+			$w=str_replace(array("\r\n","\n","\r"), '', $w);
+			if ( !eregi("^OUT:",$w) ){ continue; }
+			$arr=split('/',$w);
+			if ( $filnms != "" ){ $filnms.=","; }
+			$filnms.=end($arr);
+		}
+		fclose($fp);
+
+		return $filnms;
+	}
+
+	///////////////////////////////////////////////////////////////////
 	//HiveQL結果ファイルの内容を返す
 	///////////////////////////////////////////////////////////////////
 	function FileRead($csv_file,$dtype) {
@@ -110,7 +131,7 @@ class CommonComponent extends Object {
 	}
 
 	///////////////////////////////////////////////////////////////////
-	//Hive前処理（クエリ実行権限チェック、Hive接続先取得）
+	//Hive前処理（クエリ実行権限チェック）
 	///////////////////////////////////////////////////////////////////
 	function HiveBefore($u_userid,$u_query){
 
@@ -120,30 +141,21 @@ class CommonComponent extends Object {
 		//ユーザ情報設定
 		if ( count($users) == 0 ){
 			$u_auth=LDAP_AUTH;
-			$u_host="";
-			$u_port="";
 			$u_database="";
 		}else{
 			$u_auth=$users[0]['Users']['authority'];
-			$u_host=$users[0]['Users']['hive_host'];
-			$u_port=$users[0]['Users']['hive_port'];
 			$u_database=$users[0]['Users']['hive_database'];
 		}
 
 		//権限チェック
 		if ( CommonComponent::CheckSQLAuth($u_auth,$u_query) != 0 ){
-			return array(1,"","","");
-			return;
+			return array(1,"");
 		}
 
 		//接続先Hive Server設定
-		$hive_host=HIVE_HOST;
-		$hive_port=HIVE_PORT;
 		$hive_database="";
-		if ( $u_host != "" ){ $hive_host=$u_host; }
-		if ( $u_port != "" ){ $hive_port=$u_port; }
 		if ( $u_database != "" ){ $hive_database=$u_database; }
-		return array(0,$hive_host,$hive_port,$hive_database);
+		return array(0,$hive_database);
 	}
 
 	///////////////////////////////////////////////////////////////////
@@ -156,9 +168,9 @@ class CommonComponent extends Object {
 		if ( $user_auth == 1 ){
 			$ck=SQL_AUTH_ADMIN;
 		}elseif ( $user_auth == 2 ){
-			$ck=SQL_AUTH_SELECT;
-		}elseif ( $user_auth == 3 ){
 			$ck=SQL_AUTH_GUEST;
+		}elseif ( $user_auth == 3 ){
+			$ck=SQL_AUTH_SELECT;
 		}else{
 			return 1;
 		}
@@ -190,7 +202,7 @@ class CommonComponent extends Object {
 		while(!feof($fp)){
 			$data = fgets($fp, 512);
 			$line_cnt++;
-			if ( eregi("^COMMAND:",$data) ){ $stage_cnt++; }
+			if ( eregi("^Time taken:",$data) ){ $stage_cnt++; }
 			if ( eregi("Map Reduce",$data) ){ $mapreduce_cnt++; }
 		}
 		fclose($fp);
@@ -202,57 +214,118 @@ class CommonComponent extends Object {
 	///////////////////////////////////////////////////////////////////
 	// Job実行状況の取得
 	///////////////////////////////////////////////////////////////////
-	function GetJobInfo($exp_file,$out_file) {
+	function GetJobInfo($hql_file,$out_file,$fin_file,$pid_file) {
 		$err_flg=0;
+		$total_p=1;
+		$stage_p=0;
 		$map_p=0;
 		$reduce_p=0;
-		$stage_p=1;
-		$queryid="";
-		$proc_cnt=0;
+		$stage_cnt=0;
+		$stage_max=0;
+		$query_cnt=0;
+		$query_max=0;
 		$total_cnt=0;
+		$total_max=0;
+		$file_cnt=0;
+		$file_max=0;
 
-		//合計stage数
-		if ( !($fp=fopen($exp_file,"r")) ){
-			return array(1,$stage_p,$map_p,$reduce_p);
+                //子プロセス処理中チェック
+                if ( file_exists($pid_file) ){
+                        //子プロセスのPID取得
+                        $fp=fopen($pid_file,"r");
+                        $pid = fgets($fp, 1024);
+                        fclose($fp);
+                        $pid=str_replace(array("\r\n","\n","\r"), '', $pid);
+
+                        //子プロセス異常終了チェック(PIDファイルのpidが存在するかチェック)
+                        if ( $pid != "start" ){
+                                if ( !posix_kill($pid,0) ){
+                                        unlink($pid_file);
+					return array(100,$total_p,$stage_p,$map_p,$reduce_p);
+                                }
+                        }
+		}
+
+		//実行数(クエリ数)取得
+		$datas="";
+		if ( !($fp=fopen($hql_file,"r")) ){
+			return array(100,$total_p,$stage_p,$map_p,$reduce_p);
 		}
 		while(!feof($fp)){
-			$data = fgets($fp, 512);
+			$data = fgets($fp, 1024);
 			$data=rtrim($data);
-			if ( eregi("^COMMAND:",$data) ){ $total_cnt++; }
-			if ( eregi("Map Reduce",$data) ){ $total_cnt++; }
+			$datas = $datas . $data;
 		}
 		fclose($fp);
+		$querys=preg_split("/;/",$datas);
+		for ( $i=0; $i<count($querys); $i++){
+			if ( $querys[$i] != "" ){ $query_max++; }
+		}
 
-		//APPログファイルより情報取得
+		//hiveログより情報取得
 		if ( !($fp=fopen($out_file,"r")) ){
-			return array(1,$stage_p,$map_p,$reduce_p);
+			return array(100,$total_p,$stage_p,$map_p,$reduce_p);
 		}
 		while(!feof($fp)){
-			$data = fgets($fp, 512);
+			$data = fgets($fp, 1024);
 			$data=rtrim($data);
-			if ( ereg("^ERR:",$data) ){ $err_flg=1; }
-			if ( ereg("^PHP Fatal error",$data) ){ $err_flg=1; }
-			if ( ereg("^INF:QUERYID",$data) ){
-				list($null,$queryid)=split("=",$data,2);
+			if ( ereg("^Total MapReduce jobs",$data) ){
+				$arr=preg_split("/=/",$data);
+				$stage_max=ereg_replace(" ","",$arr[1]);
+				$stage_cnt=0;
 			}
-			if ( ereg("^INF:QEND",$data) ){ $proc_cnt++; }
+			if ( ereg("^Ended Job =",$data) ){
+				$stage_cnt++;
+			}
+			if ( ereg("map =",$data) and  eregi("reduce =",$data) ){
+				$arr=preg_split("/[ ,%]+/",$data);
+				$map_p=$arr[6];
+				$reduce_p=$arr[9];
+			}
+			if ( ereg("^Time taken:",$data) ){
+				$query_cnt++;
+			}
+			if ( ereg("^FAILED:",$data) ){
+				$err_flg=100;
+			}
 		}
 		fclose($fp);
-		if ( $err_flg != 0 ){ 
-			return array(1,$stage_p,$map_p,$reduce_p);
+
+		//ログファイルより結果取得
+		$file_max=OUTPUT_FILE_LIMIT;
+		if ( file_exists($fin_file) ){
+		 	if ( !($fp=fopen($fin_file,"r")) ){
+				return array(100,$total_p,$stage_p,$map_p,$reduce_p);
+			}
+			while(!feof($fp)){
+				$data = fgets($fp, 1024);
+				if ( eregi("^OUT:",$data) ){ $file_cnt++; }
+				if ( eregi("^WAR:",$data) ){ $err_flg++; }
+				if ( eregi("^ERR:",$data) ){ $err_flg = $err_flg + 100; }
+			}
+			fclose($fp);
 		}
 
-		//JOB進捗状況
-		list($jobid,$stage_cnt,$map_p,$reduce_p)=CommonComponent::SearchJobInfoWrapper($queryid);
+		//合計の進捗率
+		if ( $query_max != 0 ){
+			$total_p=floor((50 / $query_max ) * $query_cnt );
+		}
+		if ( $file_max != 0 ){
+			$total_p=$total_p + floor( (50 / $file_max ) * $file_cnt );
+		}
+		if ( $total_p < 0 ){ $total_p=0; }
+		if ( $total_p > 100 ){ $total_p=100; }
 
 		//stageの進捗率
-		if ( $total_cnt != 0 ){
-			$stage_p=sprintf("%.0f",(($proc_cnt+$stage_cnt)/$total_cnt*100));
+		if ( $stage_max != 0 ){
+			$stage_p=floor( (100 / $stage_max) * $stage_cnt );
 		}
-		if ( $stage_p < 1 ){ $stage_p=1; }
+		if ( $stage_p < 0 ){ $stage_p=0; }
 		if ( $stage_p > 100 ){ $stage_p=100; }
 
-		return array($err_flg,$stage_p,$map_p,$reduce_p);
+		//$this->log("query=$query_cnt/$query_max stage=$stage_cnt/$stage_max file=$file_cnt/$file_max ($total_p,$stage_p,$map_p,$reduce_p)",LOG_DEBUG);
+
+		return array($err_flg,$total_p,$stage_p,$map_p,$reduce_p);
 	}
 
 	///////////////////////////////////////////////////////////////////
@@ -260,105 +333,23 @@ class CommonComponent extends Object {
 	///////////////////////////////////////////////////////////////////
 	function GetJobId($out_file) {
 		$jobid="";
-		for ( $i=0; $i<10; $i++){
-			//queryid検索
-			$queryid=CommonComponent::SearchQueryid($out_file);
-			if ( $queryid == "" ){ continue; }
 
-			//jobid検索
-			list($jobid,$stage_cnt,$map_p,$reduce_p)=CommonComponent::SearchJobInfoWrapper($queryid);
-			if ( $jobid != "" ){ break; }
-
-			sleep(3);
+		//ログファイルより情報取得
+		if ( !($fp=fopen($out_file,"r")) ){
+			return "";
 		}
+		while(!feof($fp)){
+			$data = fgets($fp, 512);
+			$data=rtrim($data);
+			if ( ereg("^Starting Job = ",$data) ){
+				$arr=preg_split("/[ ,]+/",$data);
+				$jobid=$arr[3];
+			}
+		}
+		fclose($fp);
+
 		return $jobid;
 	}
-
-	///////////////////////////////////////////////////////////////////
-	// APPログファイルよりQueryIDを取得する
-	///////////////////////////////////////////////////////////////////
-	function SearchQueryid($out_file) {
-		$queryid="";
-
-		//結果ファイルよりqueryIDを得る
-		if ( !($fp=fopen($out_file,"r")) ){ return ""; }
-		while(!feof($fp)){
-			$data = fgets($fp, 512);
-			$data=rtrim($data);
-			if ( ereg("^INF:QUERYID",$data) ){
-				list($null,$queryid)=split("=",$data,2);
-			}
-		}
-		fclose($fp);
-
-		return $queryid;
-	}
-
-	///////////////////////////////////////////////////////////////////
-	//hiveログよりJobIDと進捗状況を取得する(上位)
-	///////////////////////////////////////////////////////////////////
-	function SearchJobInfoWrapper($queryid) {
-		$jobid="";
-		$stage_cnt=0;
-		$map_p=0;
-		$reduce_p=0;
-
-		//ファイル検索
-		$ckbase="hive_job_log_".substr($queryid,0,19);
-		if ( !($dh = opendir(DIR_HADOOP_TMP)) ){ return array("",0,0,0); }
-		while (($hive_file = readdir($dh)) !== false) {
-			if ( !ereg("^$ckbase",$hive_file) ){ continue; }
-			$hive_file=DIR_HADOOP_TMP."/$hive_file";
-			list($jobid,$stage_cnt,$map_p,$reduce_p)=CommonComponent::SearchJobInfo($hive_file,$queryid);
-			if ( $jobid != "" ){ break; }
-		}
-		closedir($dh);
-
-		return array($jobid,$stage_cnt,$map_p,$reduce_p);
-	}
-
-	///////////////////////////////////////////////////////////////////
-	//hiveログよりJobIDと進捗状況を取得する
-	///////////////////////////////////////////////////////////////////
-	function SearchJobInfo($hive_file,$queryid) {
-
-		$ckflg=0;
-		$jobid="";
-		$stage_cnt=0;
-		$map_p=0;
-		$reduce_p=0;
-		$dflg="";
-
-		if ( !($fp=fopen($hive_file,"r")) ){ return array("",0,0,0); }
-		while(!feof($fp)){
-			$data = fgets($fp, 512);
-			$data=rtrim($data);
-			if ( ereg("$queryid",$data) ){ $ckflg=1; }
-			if ( ereg("^TaskProgress|^TaskEnd",$data) ){
-				$arr=preg_split("/[,\" =]+/",$data);
-				for ($i=0; $i<count($arr); $i++){
-					if ( $arr[$i] == "TASK_HADOOP_ID" ){ $jobid=$arr[$i+1]; }
-					if ( $arr[$i] == "map" ){ $dflg="map"; continue; }
-					if ( $arr[$i] == "reduce" ){ $dflg="reduce"; continue; }
-					if ( $dflg == "" ){ continue; }
-					if ( ereg("%",$arr[$i]) ){
-						$arr[$i]=str_replace("%", '', $arr[$i]);
-						if ( $dflg == "map" ){ $map_p=$arr[$i]; }
-						if ( $dflg == "reduce" ){ $reduce_p=$arr[$i]; }
-					}
-					$dflg="";
-				}
-			}
-			if ( ereg("^TaskEnd",$data) ){
-				$stage_cnt++;
-			}
-		}
-		fclose($fp);
-		if ( $ckflg == 0 ){ return array("",0,0,0); }
-
-		return array($jobid,$stage_cnt,$map_p,$reduce_p);
-	}
-
 
 	///////////////////////////////////////////////////////////////////
 	//クエリ実行結果を更新

@@ -1,6 +1,6 @@
 ***************************************************************************
 
-  WEBブラウザからhive経由でhadoop上のデータにアクセスする「WebHive」
+  WEBブラウザ上からクエリを入力しhiveのデータにアクセスする「WebHive2.0」
 
                     - Copyright 2011-2012 Recruit -
 ***************************************************************************
@@ -11,7 +11,7 @@
 ■はじめに
 ---------------------------------------------------------------------------
 
-　本ドキュメントは、「WebHive」に関する推奨環境や導入に関する情報を提供します。
+　本ドキュメントは、「WebHive2.0」に関する推奨環境や導入に関する情報を提供します。
 
 ---------------------------------------------------------------------------
 ■動作環境
@@ -19,26 +19,23 @@
 
 本ツールでの動作確認済み環境は以下となります。
 
-　・Linux 2.6
+　・Red Hat 6.2
 　・Apache 2.2
-　・PHP 5.1/5.2
-　・MySQL 5.0
+　・PHP 5.3
+　・MySQL 5.1
 　・hadoop 0.20.2
-　・hive 0.5/0.6
-
-　(*)AWS Elastic MapReduce Amazonでの動作も確認済みです。
+　・hive 0.7.1
 
 本ツールでの動作確認済みブラウザは以下となります。
-　・Internet Explorer 8/9 （Internet Explorer 7 では動作しません）
-　・Mozilla Firefox 3.6/ Firefox 11
-　・Chrome 9 / Chrome 17
-　・Opera 11
+　・Internet Explorer 9
+　・Firefox 15
+　・Chrome 22
+　・Opera 12
 
 WebHive配布アーカイブの中には、以下のソフトウェアが含まれています。それぞれの
 著作物に対する権利については、下記ＵＲＬをご覧ください。
 　・CakePHP 1.3.3 (http://cakephp.jp/)
 　・ExtJS 4.0.7 (http://www.extjs.co.jp/)
-　・hive 0.7 PHP library
 
 ---------------------------------------------------------------------------
 ■ご利用条件
@@ -61,33 +58,28 @@ WebHive配布アーカイブの中には、以下のソフトウェアが含ま�
 ■WebHive構成
 ---------------------------------------------------------------------------
 
-hadoopのMaster NodeにApache,WebHive,Hive serverを起動する構成が最もシンプル
-なWebHive構成となります。ポート番号が異なる複数のHive Serverを起動して、WebHive
-のユーザ毎に接続先を切り替える構成も可能です。また、現在のバージョンではWebHive
-とHive serverを同一ノードで起動しなければなりませんが、将来的には分離して別サーバ
-に配置する事も可能となります。
+WebHiveを導入するサーバにapache,PHP,hive clientを導入し適切な設定を行ってください。
+WebHiveはMySQL(PostgreSQLでも可能)上にWebHiveリポジトリを保持しています。
 
-「hadoop Master Node」 　　　　　「Client」
 
-　　　Apache　－－－(http)－－－　Web browser
+　　WEB Browser
 　　　　｜
-　　　WebHive　
+　　　(http)
 　　　　｜
-　(localhost:10000)
+　　　Apache
 　　　　｜
-　　Hive server
+　　　WebHive　－－－－－－　MySQL(WebHive Repository)
 　　　　｜
-　　Hadoop(HDFS)
+　　hive client　－－－－－　MySQL(Hive Repository)
+　　　　｜
+　Hadoop(HDFS/MapRFS)
 
 
 ---------------------------------------------------------------------------
 ■インストール方法
 ---------------------------------------------------------------------------
 
-「WebHive」の導入方法は、配布アーカイブに含まれている以下ファイルを参照ください。
-
-　INSTALL_centos.txt：CentOS用の導入手順書
-　INSTALL_aws.txt：AWS Elastic MapReduce Amazon用の導入手順書
+インストールは、配布アーカイブに含まれている「INSTALL.txt」を参照ください。
 
 
 			- 以上 -

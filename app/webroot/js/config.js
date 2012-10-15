@@ -9,11 +9,11 @@ if (brlang == "ja") {
 			titleInput: 'HiveQL入力',
 			btnCreDB: 'DB作成',
 			btnUpload: 'Upload',
-			btnSql: 'HiveQL管理画面',
-			btnUpd: 'HiveQL情報更新',
-			btnReg: 'HiveQL登録',
-			btnRun: 'HiveQL実行',
-			btnExplain: 'HiveQL Explain',
+			btnSql: 'クエリ管理画面',
+			btnUpd: 'クエリ情報更新',
+			btnReg: 'クエリ登録',
+			btnRun: 'クエリ実行',
+			btnExplain: 'クエリ構文チェック',
 			btnReset: 'リセット'
 		},
 		msg: {
