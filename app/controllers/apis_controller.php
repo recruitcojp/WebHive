@@ -210,6 +210,58 @@ class ApisController extends AppController {
 
 	}
 
+	///////////////////////////////////////////////////////////////////
+	//hiveテーブル名を返す
+	///////////////////////////////////////////////////////////////////
+	function table() {
+
+		//ajaxリクエスト以外
+		if( !$this->RequestHandler->isAjax() ) {
+			$this->set("result" , array("result" => "not ajax"));
+			return;
+		}
+
+		//パラメータ解析
+		if ( isset( $this->params['form']['u'] ) ){
+			$u_userid=$this->params['form']['u'];
+		}else{
+			$u_userid="";
+		}
+		if ( isset( $this->params['form']['db'] ) ){
+			$u_dbname=$this->params['form']['db'];
+		}else{
+			$u_dbname="";
+		}
+		//$this->log("parameter=[$u_userid]",LOG_DEBUG);
+		if( $u_userid == "" or $u_dbname == "" ){
+			$this->set("result" , array("result" => "parameter error"));
+			return;
+		}
+
+		//事前処理
+		list($res,$hive_database)=CommonComponent::HiveBefore($u_userid,"show tables;");
+		if ( $res != 0 ){
+			$this->set("result" , array("result" => "permission error"));
+			return;
+		}
+
+		//show tables実行
+		$cmd = CMD_HIVE . " -e 'use $u_dbname; show tables;' 2>/dev/null";
+		$this->log("CMD=$cmd",LOG_DEBUG);
+		exec($cmd,$result,$retval);
+		$this->log("CMD=$cmd => $retval",LOG_DEBUG);
+
+		#結果セット
+		$datas=array();
+		$total=count($result);
+		for($i=0; $i<$total; $i++){
+			$datas[]=array("id"=>$result[$i], "caption"=>$result[$i]);
+		}
+
+		$this->set("result" , array("total" => "$total","row" => $datas));
+
+	}
+
 
 	///////////////////////////////////////////////////////////////////
 	//HiveQL登録処理
@@ -400,13 +452,37 @@ class ApisController extends AppController {
 		$chk_file=DIR_REQUEST."/${u_userid}/${u_id}.chk";
 		$exp_file=DIR_RESULT."/${u_userid}/${u_id}.exp";
 
+		//コメント行変換処理
+		$arr=preg_split("/[\r\n]/",$u_query);
+		$u_query2="";
+		for ($i=0; $i<count($arr); $i++){
+			if ( eregi('^--',$arr[$i]) ){
+				$u_query2.="$arr[$i];\n";
+			}else{
+				$u_query2.="$arr[$i]\n";
+			}
+		}
+
 		//リクエストファイル作成
 		if ( !($fp=fopen($hql_file,"w")) ){
 			$this->set("result" , array("result" => "file open error", "id" => "$u_id"));
 			return;
 		}
-		fputs($fp,"use ${u_database};");
-		fputs($fp,"${u_query}\n");
+		fputs($fp,"use ${u_database};\n");
+		$arr=preg_split("/;/",$u_query2);
+		for ($i=0; $i<count($arr); $i++){
+			$arr[$i]=str_replace(array("\r\n","\n","\r","\t"), ' ', $arr[$i]);
+			$arr[$i]=ltrim($arr[$i]);
+			if ( $arr[$i] == "" ){ continue; }
+			if ( eregi('^--',$arr[$i]) ){
+				$ret=fputs($fp,"$arr[$i]\n");
+			}else{
+				if ( eregi('^select',$arr[$i]) ){
+					$ret=fputs($fp,"--$arr[$i]\n");
+				}
+				$ret=fputs($fp,"$arr[$i];\n");
+			}
+		}
 		fclose($fp);
 
 		//EXPLAINファイル作成
@@ -415,13 +491,20 @@ class ApisController extends AppController {
 			return;
 		}
 		fputs($fp,"use ${u_database};\n");
-		$arr=preg_split("/;/",$u_query);
+		$arr=preg_split("/;/",$u_query2);
 		for ($i=0; $i<count($arr); $i++){
-			$arr[$i]=str_replace(array("\r\n","\n","\r"), ' ', $arr[$i]);
+			$arr[$i]=str_replace(array("\r\n","\n","\r","\t"), ' ', $arr[$i]);
 			$arr[$i]=ltrim($arr[$i]);
 			if ( $arr[$i] == "" ){ continue; }
-			if ( eregi(SQL_EXPLAIN_EXCLUDE,$arr[$i]) ){ continue; }
-			$ret=fputs($fp,"explain $arr[$i];\n");
+			if ( eregi('^--',$arr[$i]) ){
+				$ret=fputs($fp,"$arr[$i]\n");
+				continue;
+			}
+			if ( eregi(SQL_EXPLAIN_EXCLUDE,$arr[$i]) ){
+				$ret=fputs($fp,"$arr[$i];\n");
+			}else{
+				$ret=fputs($fp,"explain $arr[$i];\n");
+			}
 		}
 		fclose($fp);
 

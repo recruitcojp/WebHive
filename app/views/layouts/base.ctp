@@ -7,7 +7,6 @@
 <link rel="stylesheet" type="text/css" href="/WebHive/css/progress-bar.css" />
 <script type="text/javascript" src="/WebHive/ext/bootstrap.js"></script>
 <script type="text/javascript" src="/WebHive/js/config.js"></script>
-<script type="text/javascript" src="/WebHive/js/core.js"></script>
 <style TYPE="text/css">
 <!--
 	.details {background-image: url(/WebHive/img/details.gif) !important;}
@@ -23,15 +22,24 @@
 //]]>
 </script>
 <script type="text/javascript" >
-<?php echo $this->element('ui',array("user_auth"=>$user['User']['authority'], "upload_flg"=>FILE_UPLOAD_FLG)); ?>
+<?php 
+$u_auth=$user['User']['authority'];
+$auth_flg=Configure::read("USER_AUTH_${u_auth}");
+echo $this->element('ui',array("auth_flg"=>$auth_flg)); 
+echo $this->element('core',array("auth_flg"=>$auth_flg)); 
+?>
 </script>
 </head>
 <body>
+
+<?php echo $this->element('banner'); ?>
+
 <div id="header" style="padding:3px;font-weight:normal;font-size:12px;color:#15428b;" align="right">
 <?php echo $user['User']['username']."さん"; ?>
 &nbsp; <a href="/WebHive/users/logout">LOGOUT</a>
 &nbsp; <a href="/WebHive/entity">Hive構成情報表示</a>
-&nbsp; <a href="<?php echo TIPS_URL ?>" target=_blank>Tips集</a>
+<?php if ( TITLE_URL1 != "" ){ echo "&nbsp;" . TITLE_URL1; } ?>
+<?php if ( TITLE_URL2 != "" ){ echo "&nbsp;" . TITLE_URL2; } ?>
 &nbsp; <a href="/WebHive/help" onclick="window.open('/WebHive/help','_blank','width=900,height=500,scrollbars=yes'); return false;">変更履歴</a>
 &nbsp;
 </div>
