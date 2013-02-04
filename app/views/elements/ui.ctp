@@ -76,6 +76,26 @@ Ext.onReady(function() {
 	});
 	storeDatabase.load({ params:{ u:userid } });
 
+	//テーブル一覧のデータストア
+	var storeTable = Ext.create('Ext.data.Store', {
+		proxy: {
+			type: 'ajax',
+			actionMethods : 'POST',
+			url:'/WebHive/apis/table',
+			totalProperty:'total',
+			reader: {
+				type: 'json',
+				root:'row'
+			}
+		},
+		fields: [
+			{name: 'id'},
+			{name: 'caption'}
+		],
+		autoLoad:false
+	});
+	storeTable.load({ params:{ u:userid, db:'default' } });
+
 	///////////////////////////////////////////////////////////////////
 	// グリッドパネル
 	///////////////////////////////////////////////////////////////////
@@ -173,7 +193,8 @@ Ext.onReady(function() {
 		width: 550,
 		items:[{
 <?php 
-if ( $user_auth==1 ){ echo "
+if ( $auth_flg['create_db'] == 1 ){
+echo "
 			id: 'inCreDatabase',
 			width: 400,
 			xtype:'form',
@@ -210,16 +231,19 @@ if ( $user_auth==1 ){ echo "
 		},{
 			id: 'inTitle',
 			xtype: 'textfield',
-			<?php if ( $user_auth==3 ){ echo "readOnly: true,\n"; } ?>
+			<?php if ( $auth_flg['query_reg'] != 1 ){ echo "readOnly: true,\n"; } ?>
 			width: 500,
 			fieldLabel: 'Title'
 		},{
 			id: 'inHiveQL',
 			xtype: 'textarea',
-			<?php if ( $user_auth==3 ){ echo "readOnly: true,\n"; } ?>
+			<?php if ( $auth_flg['query_reg'] != 1 ){ echo "readOnly: true,\n"; } ?>
 			width: 500,
 			height: 125,
 			fieldLabel: 'HiveQL'
+<?php 
+if ( $auth_flg['query_reg'] == 1 ){
+echo "
 		},{
 			id: 'inQueryButton',
 			xtype: 'button',
@@ -232,6 +256,9 @@ if ( $user_auth==1 ){ echo "
 					QueryForm.show();
 				}
 			}
+";
+}
+?>
 		}]
 	});
 
@@ -247,39 +274,50 @@ if ( $user_auth==1 ){ echo "
 			xtype: 'button',
 			id:'btnRun',
 			minWidth: 70,
-			//margin: '5 3 3 3',
 			text: config.ui.btnRun
 		},{
 			xtype: 'button',
 			id:'btnExplain',
 			minWidth: 70,
-			//margin: '5 3 3 3',
 			text: config.ui.btnExplain
 <?php 
-if ( $user_auth==1 or $user_auth==2){ echo "
+if ( $auth_flg['data_upload'] == 1 ){
+echo "
+		},{
+			xtype: 'button',
+			id:'btnDataUpload',
+			minWidth: 70,
+			text: config.ui.btnDataUpload,
+			listeners:{
+				click:  function(button,event){
+					DataUploadForm.show();
+				}
+			}
+";
+}
+if ( $auth_flg['query_reg'] == 1 ){
+echo "
 		},{
 			xtype: 'button',
 			id:'btnReg',
 			minWidth: 70,
-			//margin: '5 3 3 3',
 			text: config.ui.btnReg
 ";
 }
-if ( $user_auth==1 ){ echo "
+if ( $auth_flg['query_mgr'] == 1 ){
+echo "
 		},{
 			xtype: 'button',
 			id:'btnSql',
 			minWidth: 70,
-			//margin: '5 3 3 3',
 			text: config.ui.btnSql
 ";
 }
-if ( $user_auth==1 and $upload_flg==1 ){ echo "
+if ( $auth_flg['file_upload']==1 ){ echo "
 		},{
 			xtype: 'button',
 			id:'btnUpload',
 			minWidth: 70,
-			//margin: '5 3 3 3',
 			text: config.ui.btnUpload
 ";
 }
@@ -288,7 +326,6 @@ if ( $user_auth==1 and $upload_flg==1 ){ echo "
 			xtype: 'button',
 			id:'btnReset',
 			minWidth: 70,
-			//margin: '5 3 3 3',
 			text: config.ui.btnReset
 		}]
 	});
@@ -347,7 +384,7 @@ if ( $user_auth==1 and $upload_flg==1 ){ echo "
 
 
 	///////////////////////////////////////////////////////////////////
-	// HiveQL入力パネル
+	// 右上パネル
 	///////////////////////////////////////////////////////////////////
 	var inputPanel = Ext.create('Ext.Panel', {
 		height: '100%',
@@ -364,7 +401,7 @@ if ( $user_auth==1 and $upload_flg==1 ){ echo "
 			layout: 'column',
 			title: 'Input',
 			border: false,
-			width: 550,
+			width: '98%',
 			height: 230,
 			items:inputQuery
 		},{
@@ -372,7 +409,7 @@ if ( $user_auth==1 and $upload_flg==1 ){ echo "
 			xtype:'fieldset',
 			layout: 'column',
 			title: 'Progress',
-			width: 550,
+			width: '98%',
 			height: 50,
 			items:inputProgress
 		},{
@@ -390,24 +427,27 @@ if ( $user_auth==1 and $upload_flg==1 ){ echo "
 	// 下部パネル
 	///////////////////////////////////////////////////////////////////
 	var outputPanel = Ext.create('Ext.Panel', {
-		items: [{
+		layout:'fit',
+		items:{
 		id: 'outTab',
 		xtype: 'tabpanel',
 		deferredRender: true,
 		activeTab: 0,
 		style: 'font-family: \"Courier New\",Courier,monospace;font-weight:normal;',
 		width: '100%',
-		height: 250,
+		height: '100%',
+		autoScroll: true,
+		margin: '0 0 35 0',
 		items:[{
 			id:'outConsole',
 			title:'Console',
 			layout:'fit',
 			preventBodyReset: true,
-			style: 'font-size:11px;',
 			listeners: {activate: handleActivate},
-			autoScroll: true,
 			xtype:'box',
-			autoScroll: true
+			autoScroll: true,
+			height: '100%',
+			width: '100%'
 		},{
 			id:'outExplain',
 			title:'Explain',
@@ -416,7 +456,7 @@ if ( $user_auth==1 and $upload_flg==1 ){ echo "
 			xtype:'textarea',
 			readOnly: true,
 			height: '100%',
-			border: 'none'
+			width: '100%'
 		},{
 			id:'outOutput',
 			title:'Output',
@@ -425,7 +465,7 @@ if ( $user_auth==1 and $upload_flg==1 ){ echo "
 			xtype:'textarea',
 			readOnly: true,
 			height: '100%',
-			border: 'none'
+			width: '100%'
 		},{
 			id:'outDataView',
 			title:'Data View',
@@ -434,9 +474,9 @@ if ( $user_auth==1 and $upload_flg==1 ){ echo "
 			xtype:'textarea',
 			readOnly: true,
 			height: '100%',
-			border: 'none'
+			width: '100%'
 		}]
-		}]
+		}
 	});
 
 	///////////////////////////////////////////////////////////////////
@@ -449,19 +489,20 @@ if ( $user_auth==1 and $upload_flg==1 ){ echo "
 			items: gridPanel,
 			region: 'west',
 			split: true,
-			height: '60%',
+			height: '55%',
 			width: '50%'
 		},{
 			items: inputPanel,
 			region: 'center',
 			split: true,
-			height: '60%',
+			height: '55%',
 			width: '50%'
 		},{
 			items: outputPanel,
+			layout:'fit',
 			region: 'south',
 			split: true,
-			height: '40%',
+			height: '45%',
 			width: '100%'
 		}]
 	});
@@ -477,7 +518,8 @@ if ( $user_auth==1 and $upload_flg==1 ){ echo "
 	});
 
 <?php
-if ( $user_auth==1 or $user_auth==2){ echo "
+if ( $auth_flg['query_del'] == 1 ){
+echo "
 	///////////////////////////////////////////////////////////////////
 	// グリッドの右クリック
 	///////////////////////////////////////////////////////////////////
@@ -487,10 +529,9 @@ if ( $user_auth==1 or $user_auth==2){ echo "
 	});	
 ";
 }
-?>
 
-<?php 
-if ( $user_auth==1 ){ echo "
+if ( $auth_flg['create_db'] == 1 ){
+echo "
 	///////////////////////////////////////////////////////////////////
 	//DBスキーマ追加
 	///////////////////////////////////////////////////////////////////
@@ -512,10 +553,9 @@ if ( $user_auth==1 ){ echo "
 	});
 ";
 } 
-?>
 
-<?php 
-if ( $user_auth==1 and $upload_flg==1 ){ echo "
+if ( $auth_flg['file_upload'] == 1 ){
+echo "
 	///////////////////////////////////////////////////////////////////
 	//ファイルアップロード
 	///////////////////////////////////////////////////////////////////
@@ -524,10 +564,9 @@ if ( $user_auth==1 and $upload_flg==1 ){ echo "
 	});
 ";
 } 
-?>
 
-<?php 
-if ( $user_auth==1 ){ echo "
+if ( $auth_flg['query_mgr'] == 1 ){
+echo "
 	///////////////////////////////////////////////////////////////////
 	//SQL管理画面ボタンクリック時の処理
 	///////////////////////////////////////////////////////////////////
@@ -536,10 +575,9 @@ if ( $user_auth==1 ){ echo "
 	});
 ";
 } 
-?>
 
-<?php 
-if ( $user_auth==1 or $user_auth==2){ echo "
+if ( $auth_flg['query_reg'] == 1 ){
+echo "
 	///////////////////////////////////////////////////////////////////
 	//登録ボタンクリック時の処理
 	///////////////////////////////////////////////////////////////////
@@ -608,6 +646,13 @@ if ( $user_auth==1 or $user_auth==2){ echo "
 
 		Ext.getCmp('btnRun').enable();
 		Ext.getCmp('btnExplain').enable();
+<?php
+if ( $auth_flg['data_upload'] == 1 ){
+echo "
+		Ext.getCmp('btnDataUpload').enable();
+";
+}
+?>
 		Ext.getCmp('outTab').setActiveTab('outConsole');
 		Ext.getCmp('outExplain').setValue('');
 		Ext.getCmp('outOutput').setValue('');
@@ -691,6 +736,94 @@ if ( $user_auth==1 or $user_auth==2){ echo "
 			}]
 		}]
 	});
+
+	///////////////////////////////////////////////////////////////////
+	// データアップロード入力画面
+	///////////////////////////////////////////////////////////////////
+	var DataUploadPanel = Ext.create('Ext.form.Panel', {
+		plain: true,
+		border: 0,
+		bodyPadding: 5,
+		fileUpload: true,
+		layout: {
+			type: 'vbox',
+			align: 'stretch'
+		},
+		items: [{
+			id: 'DataUploadUserid',
+			name: 'DataUploadUserid',
+			value:userid,
+			xtype: 'textfield',
+			hidden:true
+		},{
+			id: 'DataUploadExplanation',
+			name: 'DataUploadExplanation',
+			xtype: 'displayfield',
+			value: '<?php echo HIVE_DATABASE_UPLOAD ?>データベースの一時テーブルにデータを投入します。<br>\nデータはタブ区切りで入力してください。'
+		},{
+			xtype: 'textarea',
+			fieldLabel: 'Data Upload',
+			hideLabel: true,
+			id:'DataUploadText',
+			name: 'DataUploadText',
+			style: 'margin:0',
+			flex: 1
+		}]
+	});
+
+	var DataUploadForm = Ext.create('Ext.window.Window', {
+		title: 'Data Upload',
+		//collapsible: true,
+		animCollapse: true,
+		closable: false,
+		maximizable: true,
+		width: 750,
+		height: 500,
+		minWidth: 300,
+		minHeight: 200,
+		layout: 'fit',
+		items: DataUploadPanel,
+		dockedItems: [{
+			xtype: 'toolbar',
+			dock: 'bottom',
+			ui: 'footer',
+			layout: {
+				pack: 'center'
+			},
+			items: [{
+				minWidth: 80,
+				text: 'Upload',
+				listeners:{
+					click: function(){
+						DataUploadPanel.getForm().submit({
+							url: '/WebHive/datauploads/fileupload',
+							waitMsg: 'データ送信中...',
+							success: function(fp, o){
+								if (o.result.success){
+									Ext.Msg.alert(config.msg.checkProcess, o.result.msg);
+								}else{
+									Ext.Msg.alert('エラー',o.result.msg).setIcon(Ext.Msg.ERROR);
+								}
+							},
+							failure:function(fp, o){
+								Ext.Msg.alert('エラー',o.result.msg).setIcon(Ext.Msg.ERROR);
+							}
+						});	
+						DataUploadForm.hide();
+					}
+				}
+			},{
+				minWidth: 80,
+				text: 'Cancel',
+				listeners:{
+					click: function(){
+						DataUploadForm.hide();
+					}
+				}
+			}]
+		}]
+	});
+
 
 	///////////////////////////////////////////////////////////////////
 	//SQL選択画面のダブルクリック

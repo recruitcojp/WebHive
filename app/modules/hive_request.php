@@ -7,9 +7,18 @@
 define('ROOT', dirname(dirname(__FILE__)));
 require_once(ROOT."/config/app.php");
 
+//ダミー
+class Configure {
+function write($config, $value = null) {}
+}
+
 //ファイルアーカイブ用
 set_include_path(get_include_path() .PATH_SEPARATOR. DIR_ARCH_LIB); 
 require_once "File/Archive.php";
+require_once "common/query_parser.php";
+
+//LANG設定
+putenv("LANG=".APP_LANG);
 
 // 引数チェック
 if ( empty($argv[1]) or empty($argv[2]) ){
@@ -37,23 +46,74 @@ $ret=fputs($fp,"$mypid\n");
 fclose($fp);
 
 ///////////////////////////////////////////////////////////////////
+// クエリ解析
+///////////////////////////////////////////////////////////////////
+$OUTPUT_VERBOSE="";
+$OUTPUT_HEADER="";
+$OUTPUT_RECSEPCHAR="\t";
+if ( !($ifp=fopen($hql_file,"r")) ){
+	WriteFinFile($fin_file,"ERR:open($hql_file) error\n");
+	unlink($pid_file);
+	exit(1);
+}
+while(!feof($ifp)){
+	$row = fgets($ifp,102400);
+	if ( eregi('^--WEBHIVE VERBOSE',$row) ){ $OUTPUT_VERBOSE="V"; }
+	if ( eregi('^--WEBHIVE HEADER',$row) ){ $OUTPUT_HEADER="H"; }
+	if ( eregi('^--WEBHIVE RECSEPCHAR',$row) ){
+		$row=str_replace(array("\r\n","\n","\r"), '', $row);
+		$arr=preg_split("/ /",$row);
+		$OUTPUT_RECSEPCHAR=$arr[2];
+	}
+}
+fclose($ifp);
+
+
+///////////////////////////////////////////////////////////////////
 // クエリ実行
 ///////////////////////////////////////////////////////////////////
 $nowdate=date("Y/m/d g:i:s");
 WriteFinFile($fin_file,"START:$nowdate\n");
 
-
+$sv_db="";
 $sv_zip_file="";
 $file_cnt=0;
 $file_size=0;
-$cmd = CMD_HIVE . " -f $hql_file 2>$out_file";
+$sv_query="";
+if ( $OUTPUT_VERBOSE == "" and $OUTPUT_HEADER == "" ){
+	$cmd = CMD_HIVE . " -f $hql_file 2>$out_file";
+}else{
+	$cmd = CMD_HIVE . " -v -f $hql_file 2>$out_file";
+}
 if ( !($ifp=popen($cmd,"r")) ){
 	WriteFinFile($fin_file,"ERR:popen($cmd) error\n");
 	unlink($pid_file);
 	exit(1);
 }
 while(!feof($ifp)){
-	$row = fgets($ifp,10240);
+	$row = fgets($ifp,102400);
+
+	//カラムヘッダ制御
+	if ( $OUTPUT_HEADER != "" ){
+		if ( eregi('^use',$row) ){
+			$arr=preg_split("/[ \n]/",$row);
+			$sv_db=$arr[1];
+		}
+		if ( eregi('^--select',$row) ){
+			$sv_query=substr($row,2);
+			continue;
+		}
+		if ( $sv_query != "" and  !eregi('^select',$row) ){
+			$sv_query=query_parser::get_header($sv_db,$sv_query,$OUTPUT_RECSEPCHAR,$row);
+			$row="$sv_query\n$row";
+			$sv_query="";
+		}
+	}
+
+	//TAB変換処理
+	if ( $OUTPUT_RECSEPCHAR != "\t" ){
+		$row=str_replace(array("\t"), $OUTPUT_RECSEPCHAR, $row);
+	}
 
 	//出力ファイル
 	$row_len=strlen($row);
@@ -102,6 +162,9 @@ unlink($pid_file);
 
 exit(0);
 
+///////////////////////////////////////////////////////////////////
+//FINファイル出力
+///////////////////////////////////////////////////////////////////
 function WriteFinFile($fin_file,$msg) {
 	if ( !($rfp=fopen($fin_file,"a")) ){
 		print "ERR:file open error($fin_file)\n";
@@ -111,6 +174,5 @@ function WriteFinFile($fin_file,$msg) {
 	fclose($rfp);
 	return 0;
 }
-
 
 ?>

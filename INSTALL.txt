@@ -154,28 +154,37 @@ https://github.com/recruitcojp/WebHive/
 # vi app.php
 
 　APP_TITLE		：変更不要
+　APP_LANG		：hiveコマンド実行時に利用するLANG環境変数の値
 　USER_ADMIN		：0=未認証状態でユーザ管理画面表示を許可 1=admin権限でのみ表示可能
 　DIR_REQUEST		：リクエストファイルの格納先
 　DIR_RESULT		：結果ファイルの格納先
 　DIR_ARCH_LIB		：PHPアーカイブライブラリ保存先
 　DIR_AUDIT_LOG		：監査ログファイルの格納先
 　DIR_ENTITY		：hive構成情報のデータ格納先
+　DIR_UPLOAD		：アップロードファイルの一時格納先
 　CMD_HADOOP		：hadoopコマンドのパス
 　CMD_HIVE		：hiveコマンドのパス
 　CMD_HIVE_SHELL	：hiveコマンド実行スクリプトのパス
 　CMD_PHP		：phpコマンドのパス
 　CMD_ZIP		：zipコマンドのパス
 　HIVE_DATABASE		：hiveデータベースのデフォルト
+　HIVE_DATABASE_UPLOAD	：アップロードデータの一時テーブル作成先hiveスキーマ
 　OUTPUT_FILE_MAX	：結果ファイルの最大サイズ
 　OUTPUT_FILE_LIMIT	：結果ファイルの最大数
 　INFORMATION_FILE	：WebHive変更履歴
 　TIPS_FILE		：変更不要
-　TIPS_URL		：TIPへのリンク先
-　SQL_AUTH_ADMIN	：ADMIN権限ユーザの許可クエリ
-　SQL_AUTH_GUEST	：GUEST権限ユーザの許可クエリ
-　SQL_AUTH_SELECT	：SELECT権限ユーザの許可クエリ
+　TITLE_URL1		：追加メニューリンク(1)
+　TITLE_URL2		：追加メニューリンク(2)
+  BANNER_IMG            ：バーナー画像
+　USER_AUTH_xx		：権限設定(xxは権限番号、users.authorityと紐付られる)
+	query		：hive許可コマンド(allの場合はコマンド制限なし)
+	query_mgr	：クエリ管理画面(1=利用可能、0=利用不可)
+	query_reg	：クエリ登録(1=利用可能、0=利用不可)
+	query_del	：登録クエリの削除(1=利用可能、0=利用不可)
+	create_db	：データベース作成(1=利用可能、0=利用不可)
+	data_upload	：データップロード(1=利用可能、0=利用不可)
+	file_upload	：ファイルアップロード(1=利用可能、0=利用不可)
 　SQL_EXPLAIN_EXCLUDE	：EXPLAINチェックで除外するコマンド
-　FILE_UPLOAD_FLG	：1=ファイルアップロード機能可能 0=ファイルアップロード機能不可
 　LDAP_HOST		：LDAPサーバのIPアドレス
 　LDAP_RDN 		：LDAPのRDN（例：uid=%USER%,ou=hive,dc=hoge,dc=com）
 　LDAP_AUTH		：LDAP認証したユーザの権限(1=admin,2=guest,3=select)
@@ -192,10 +201,10 @@ https://github.com/recruitcojp/WebHive/
 5. ブラウザよりユーザ登録を行う。
 http://xxxxxxxxxx/WebHive/users/add
 
-　Authority：１=全権限あり、2=参照専用ユーザ、3=登録HiveQLのみ実行可能
+　Authority：app.phpのUSER_AUTH_xxパラメータの権限と紐付る
 　hive_host：未使用
 　hive_port：未使用
-　hive_database：使用するhiveデータベースを限定する場合に指定する
+　hive_database：使用できるhiveデータベースを限定する場合に指定する
 
 　ユーザ登録後に「http://xxxxxxxxxx/WebHive」へアクセスして登録したユーザでログインできるのを確認する。
 　※初回ユーザ登録後は管理者以外でユーザ管理画面を表示できなようにapp.confのUSER_ADMINパラメータを1にして下さい。

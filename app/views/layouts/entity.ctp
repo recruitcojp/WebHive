@@ -7,6 +7,8 @@
 <body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" >
 <a name='page_top'></a>
 
+<?php echo $this->element('banner'); ?>
+
 <table width="100%" height="100%" cellspacing="0" cellpadding="0">
 	<tr height="5" bgcolor="#dfe9f6" class="noprint">
 		<td colspan="2">
