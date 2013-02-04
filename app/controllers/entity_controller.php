@@ -132,7 +132,7 @@ class EntityController extends AppController {
 
 			//フィルター
 			if ( $p_filter != "" ){
-				if ( preg_match("/$p_filter/",$buffer)==false and preg_match("/$p_filter/",$table_name)==false){ continue; }
+				if ( preg_match("/$p_filter/i",$buffer)==false and preg_match("/$p_filter/i",$table_name)==false){ continue; }
 			}
 
 			//コンボボックス用
@@ -336,23 +336,8 @@ class EntityController extends AppController {
 	}
 
 	function beforeRender() {
-
 		$this->user=$this->Auth->user();
-		$user=$this->user;
-
-		//usersテーブル検索
-		$this->loadModel('Users');
-		$username=$user['User']['username'];
-		$users=$this->Users->find('all', array('conditions' => "username='$username'"));
-		if ( count($users) > 0 ){
-			$user['User']['authority']=$users[0]['Users']['authority'];
-		}
-
-		//権限情報が未設定の場合(LDAP認証やWebHiveリポジトリでauthorityが未設定の場合)
-		if ( empty($user['User']['authority']) ){
-			$user['User']['authority']=LDAP_AUTH;
-		}
-		$this->set('user', $user);
+		$this->set('user', $this->user);
 	}
 
 
@@ -384,15 +369,20 @@ class EntityController extends AppController {
 			$col_name=$arr[0];
 			$data_type=$arr[1];
 			if ( $col_name == "" ){ continue; }
-			if ( empty($col_data[$p_table_id][$col_name]) ){
+			if ( empty($col_data[$p_table_id]) ){
 				$entity_name="";
-			}else{
-				$entity_name=$col_data[$p_table_id][$col_name];
-			}
-			if ( empty($code_data[$p_table_id][$col_name]) ){
 				$code_name="";
 			}else{
-				$code_name=$code_data[$p_table_id][$col_name];
+				if ( empty($col_data[$p_table_id][$col_name]) ){
+					$entity_name="";
+				}else{
+					$entity_name=$col_data[$p_table_id][$col_name];
+				}
+				if ( empty($code_data[$p_table_id][$col_name]) ){
+					$code_name="";
+				}else{
+					$code_name=$code_data[$p_table_id][$col_name];
+				}
 			}
 
 			$col_flg++;

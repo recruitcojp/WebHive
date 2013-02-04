@@ -5,8 +5,19 @@ class User extends AppModel {
 
 	function afterFind($results,$primary){
 
-		$u_user=$_POST['data']['User']['username'];
-		$u_pass=$_POST['data']['User']['password'];
+		if ( empty($_POST['data']) ){
+			$u_user="";
+			$u_pass="";
+		}else{
+			$u_user=$_POST['data']['User']['username'];
+			$u_pass=$_POST['data']['User']['password'];
+		}
+
+		if ( $u_user != "" and $u_pass == "" ){
+			$this->LoginAuditLogWrite($u_user,"NG","login error");
+			$results=array();
+			return $results; 
+		}
 
 		//usersテーブル認証がOKなら抜ける
 		if ( !empty($results) ){

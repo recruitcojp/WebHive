@@ -16,21 +16,28 @@ class PagesController extends AppController {
 	function beforeRender() {
 		$this->layout='base';
 		$this->user=$this->Auth->user();
-		$user=$this->user;
 
 		//usersテーブル検索
 		$this->loadModel('Users');
-		$username=$user['User']['username'];
+		$username=$this->user['User']['username'];
 		$users=$this->Users->find('all', array('conditions' => "username='$username'"));
 		if ( count($users) > 0 ){
-			$user['User']['authority']=$users[0]['Users']['authority'];
+			$this->user['User']['authority']=$users[0]['Users']['authority'];
 		}
 
 		//権限情報が未設定の場合(LDAP認証やWebHiveリポジトリでauthorityが未設定の場合)
-		if ( empty($user['User']['authority']) ){
-			$user['User']['authority']=LDAP_AUTH;
+		if ( empty($this->user['User']['authority']) ){
+			$this->user['User']['authority']=LDAP_AUTH;
+
+			//初回ログイン時はDB登録
+			$reg=array();
+			$reg['Users']['username']=$this->user['User']['username'];
+			$reg['Users']['authority']=$this->user['User']['authority'];
+			$this->Users->create();
+			$this->Users->save($reg, array('username','authority'));
 		}
-		$this->set('user', $user);
+
+		$this->set('user', $this->user);
 	}
 }
 ?>

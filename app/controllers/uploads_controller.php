@@ -16,8 +16,11 @@ class UploadsController extends AppController {
 
 		$this->layout = "ajax";
 
-		//ファイルアップロード機能チェック
-		if ( FILE_UPLOAD_FLG == 0 ){
+		//ファイルアップロード機能の許可チェック
+		$this->user=$this->Auth->user();
+		$u_auth=$this->user['User']['authority'];
+		$auth_flg=Configure::read("USER_AUTH_${u_auth}");
+		if ( $auth_flg['file_upload'] != 1 ){
 			$this->set("result" , array("success" => false,'msg'=>'ファイルアップロードが許可されていません。'));
 			return;
 		}
@@ -67,13 +70,6 @@ class UploadsController extends AppController {
 	}
 
 	function beforeRender() {
-		//admin権限以外はHiveQL画面表示不可
-		$ck=0;
-		$user=$this->Auth->user();
-		if ( !empty($user) ){
-			if ( $user['User']['authority'] == 1 ){ $ck=1; }
-		}
-		if ( $ck == 0 ){ $this->redirect('/errors'); }
 	}
 }
 ?>

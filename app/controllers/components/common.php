@@ -29,7 +29,7 @@ class CommonComponent extends Object {
 	///////////////////////////////////////////////////////////////////
 	//ディレクトリ作成
 	///////////////////////////////////////////////////////////////////
-	function MakeDirectory($u_userid){
+	function MakeDirectory($u_userid, $u_id=""){
 		$d1=DIR_REQUEST."/${u_userid}";
 		if ( !is_dir($d1) ){
 			if ( !mkdir($d1) ){ return 1; }
@@ -38,6 +38,18 @@ class CommonComponent extends Object {
 		$d2=DIR_RESULT."/${u_userid}";
 		if ( !is_dir($d2) ){
 			if ( !mkdir($d2) ){ return 1; }
+		}
+
+		$d3=DIR_UPLOAD."/${u_userid}";
+		if ( !is_dir($d3) ){
+			if ( !mkdir($d3) ){ return 1; }
+		}
+		
+		if ( $u_id != "" ){
+			$d3=DIR_UPLOAD."/${u_userid}/$u_id";
+			if ( !is_dir($d3) ){
+				if ( !mkdir($d3) ){ return 1; }
+			}
 		}
 		return 0;
 	}
@@ -164,20 +176,20 @@ class CommonComponent extends Object {
 	function CheckSQLAuth($user_auth, $u_query) {
 
 		//許可
-		$ck="";
-		if ( $user_auth == 1 ){
-			$ck=SQL_AUTH_ADMIN;
-		}elseif ( $user_auth == 2 ){
-			$ck=SQL_AUTH_GUEST;
-		}elseif ( $user_auth == 3 ){
-			$ck=SQL_AUTH_SELECT;
-		}else{
-			return 1;
+		$ck=Configure::read("USER_AUTH_${user_auth}.query");
+		if ( $ck == "" ){ return 1; }
+		if ( eregi($ck,"all") ){ return 0; }
+
+		//コメント除外処理
+		$arr=preg_split("/[\r\n]/",$u_query);
+		$u_query2="";
+		for ($i=0; $i<count($arr); $i++){
+			if ( eregi('^--',$arr[$i]) ){ continue; }
+			$u_query2.="$arr[$i]\n";
 		}
-		if ( $ck == "" ){ return 0; }
 
 		//権限チェック
-		$arr=preg_split("/;/",$u_query);
+		$arr=preg_split("/;/",$u_query2);
 		for ($i=0; $i<count($arr); $i++){
 			$arr[$i]=str_replace(array("\r\n","\n","\r"), ' ', $arr[$i]);
 			$arr[$i]=ltrim($arr[$i]);
@@ -229,21 +241,21 @@ class CommonComponent extends Object {
 		$file_cnt=0;
 		$file_max=0;
 
-                //子プロセス処理中チェック
-                if ( file_exists($pid_file) ){
-                        //子プロセスのPID取得
-                        $fp=fopen($pid_file,"r");
-                        $pid = fgets($fp, 1024);
-                        fclose($fp);
-                        $pid=str_replace(array("\r\n","\n","\r"), '', $pid);
+		//子プロセス処理中チェック
+		if ( file_exists($pid_file) ){
+			//子プロセスのPID取得
+			$fp=fopen($pid_file,"r");
+			$pid = fgets($fp, 1024);
+			fclose($fp);
+			$pid=str_replace(array("\r\n","\n","\r"), '', $pid);
 
-                        //子プロセス異常終了チェック(PIDファイルのpidが存在するかチェック)
-                        if ( $pid != "start" ){
-                                if ( !posix_kill($pid,0) ){
-                                        unlink($pid_file);
+			//子プロセス異常終了チェック(PIDファイルのpidが存在するかチェック)
+			if ( $pid != "start" ){
+				if ( !posix_kill($pid,0) ){
+					unlink($pid_file);
 					return array(100,$total_p,$stage_p,$map_p,$reduce_p);
-                                }
-                        }
+				}
+			}
 		}
 
 		//実行数(クエリ数)取得
