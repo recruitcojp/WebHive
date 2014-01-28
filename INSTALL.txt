@@ -154,6 +154,7 @@ https://github.com/recruitcojp/WebHive/
 # vi app.php
 
 　APP_TITLE		：変更不要
+　APP_TITLE_MSG		：環境名（省略可能）
 　APP_LANG		：hiveコマンド実行時に利用するLANG環境変数の値
 　USER_ADMIN		：0=未認証状態でユーザ管理画面表示を許可 1=admin権限でのみ表示可能
 　DIR_REQUEST		：リクエストファイルの格納先
@@ -177,6 +178,7 @@ https://github.com/recruitcojp/WebHive/
 　TITLE_URL2		：追加メニューリンク(2)
   BANNER_IMG            ：バーナー画像
 　USER_AUTH_xx		：権限設定(xxは権限番号、users.authorityと紐付られる)
+	rolename	：権限名称
 	query		：hive許可コマンド(allの場合はコマンド制限なし)
 	query_mgr	：クエリ管理画面(1=利用可能、0=利用不可)
 	query_reg	：クエリ登録(1=利用可能、0=利用不可)
@@ -184,6 +186,7 @@ https://github.com/recruitcojp/WebHive/
 	create_db	：データベース作成(1=利用可能、0=利用不可)
 	data_upload	：データップロード(1=利用可能、0=利用不可)
 	file_upload	：ファイルアップロード(1=利用可能、0=利用不可)
+	user_mgr	：ユーザ権限画面(1=利用可能、0=利用不可)
 　SQL_EXPLAIN_EXCLUDE	：EXPLAINチェックで除外するコマンド
 　LDAP_HOST		：LDAPサーバのIPアドレス
 　LDAP_RDN 		：LDAPのRDN（例：uid=%USER%,ou=hive,dc=hoge,dc=com）

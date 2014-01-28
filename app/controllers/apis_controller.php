@@ -91,7 +91,7 @@ class ApisController extends AppController {
 					"rid"=>$u_rid,
 					"rfil"=>$rfil,
 					"rsts"=>$u_rsts,
-					"sql"=>str_replace(";",";\n",$querys[$i]['Runhists']['query'])
+					"sql"=>$querys[$i]['Runhists']['query']
 					);
 			}
 
@@ -161,6 +161,120 @@ class ApisController extends AppController {
 	}
 
 	///////////////////////////////////////////////////////////////////
+	//ユーザ一覧を返す
+	///////////////////////////////////////////////////////////////////
+	function users() {
+
+		//ajaxリクエスト以外
+		if( !$this->RequestHandler->isAjax() ) {
+			$this->set("result" , array("result" => "not ajax"));
+			return;
+		}
+
+		//ユーザ一覧
+		$u_users=$this->Users->find('all', array() );
+		//$this->log($u_users,LOG_DEBUG);
+
+		//結果セット
+		$id=0;
+		$datas=array();
+		$total=count($u_users);
+		for($i=0; $i<$total; $i++){
+			if ( $u_users[$i]['Users']['authority'] == 1 ){ continue; }
+
+			$auth=$u_users[$i]['Users']['authority'];
+			$wk=Configure::read("USER_AUTH_${auth}");
+			if ( $wk == "" ){ continue; }
+
+			$datas[]=array(
+				"id"=>$id,
+				"userid"=>$u_users[$i]['Users']['id'], 
+				"username"=>$u_users[$i]['Users']['username'],
+				"rolename"=>$wk['rolename'],
+				"authority"=>$u_users[$i]['Users']['authority'],
+				"hive_database"=>$u_users[$i]['Users']['hive_database']
+			);
+			$id++;
+		}
+
+		$this->set("result" , array("total" => "$total","row" => $datas));
+	}
+
+	///////////////////////////////////////////////////////////////////
+	//ロール一覧を返す
+	///////////////////////////////////////////////////////////////////
+	function roles() {
+
+		//ajaxリクエスト以外
+		if( !$this->RequestHandler->isAjax() ) {
+			$this->set("result" , array("result" => "not ajax"));
+			return;
+		}
+
+		//結果セット
+		$datas=array();
+		$total=0;
+		for($i=2; $i<10; $i++){
+			$wk=Configure::read("USER_AUTH_${i}");
+			//$this->log($wk,LOG_DEBUG);
+			if ( $wk == "" ){ continue; }
+			$datas[]=array("id"=>$i, "rolename"=>$wk['rolename'], "query"=>$wk['query']);
+		}
+
+		$this->set("result" , array("total" => "$total","row" => $datas));
+	}
+
+	///////////////////////////////////////////////////////////////////
+	//ユーザ権限更新
+	///////////////////////////////////////////////////////////////////
+	function usermodify() {
+
+		//ajaxリクエスト以外
+		if( !$this->RequestHandler->isAjax() ) {
+			$this->set("result" , array("result" => "not ajax"));
+			return;
+		}
+
+		//パラメータ解析
+		//$this->log($this->params,LOG_DEBUG);
+		if ( isset( $this->params['form']['userid'] ) ){
+			$u_userid=$this->params['form']['userid'];
+		}else{
+			$u_userid="";
+		}
+		if ( isset( $this->params['form']['userauth'] ) ){
+			$u_userauth=$this->params['form']['userauth'];
+		}else{
+			$u_userauth="";
+		}
+		if ( isset( $this->params['form']['hive_database'] ) ){
+			$u_hive_database=$this->params['form']['hive_database'];
+		}else{
+			$u_hive_database="";
+		}
+		$this->log("usermodify() [$u_userid][$u_userauth][$u_hive_database]",LOG_DEBUG);
+
+		//パラメータチェック
+		if ( $u_userid == "" or $u_userauth == "" ){
+			$this->set("result" , array("result" => "parameter error"));
+			return;
+		}
+
+		//DB更新
+		$reg=array();
+		$reg['Users']['id']=$u_userid;
+		$reg['Users']['authority']=$u_userauth;
+		$reg['Users']['hive_database']=$u_hive_database;
+		$this->Users->create();
+		if ( !($this->Users->save($reg, array('id','authority','hive_database'))) ){
+			$this->set("result" , array("result" => "db access error"));
+			return;
+		}
+
+		$this->set("result" , array("result" => "ok"));
+	}
+
+	///////////////////////////////////////////////////////////////////
 	//hiveデータベース名を返す
 	///////////////////////////////////////////////////////////////////
 	function database() {
@@ -190,24 +304,21 @@ class ApisController extends AppController {
 			return;
 		}
 
-		if ( $hive_database == "" ){
-			$cmd = CMD_HIVE . " -e 'show databases;' 2>/dev/null";
-			$this->log("CMD=$cmd",LOG_DEBUG);
-			exec($cmd,$result,$retval);
-			$this->log("CMD=$cmd => $retval",LOG_DEBUG);
-		}else{
-			$result=split(",",$hive_database);
-		}
+		//全データベース名取得
+		$cmd = CMD_HIVE . " -e 'show databases;' 2>/dev/null";
+		$this->log("CMD=$cmd",LOG_DEBUG);
+		exec($cmd,$result,$retval);
+		$this->log("CMD=$cmd => $retval",LOG_DEBUG);
 
 		#結果セット
 		$datas=array();
 		$total=count($result);
 		for($i=0; $i<$total; $i++){
+			if ( CommonComponent::CheckDatabase($hive_database,$result[$i]) != 0 ){ continue; }
 			$datas[]=array("id"=>$result[$i], "caption"=>$result[$i]);
 		}
 
 		$this->set("result" , array("total" => "$total","row" => $datas));
-
 	}
 
 	///////////////////////////////////////////////////////////////////
@@ -438,7 +549,7 @@ class ApisController extends AppController {
 		//事前処理
 		list($res,$hive_database)=CommonComponent::HiveBefore($u_userid,$u_query);	
 		if ( $res != 0 ){
-			$this->set("result" , array("result" => "permission error"));
+			$this->set("result" , array("result" => "許可されていないクエリです"));
 			return;
 		}
 
@@ -474,14 +585,7 @@ class ApisController extends AppController {
 			$arr[$i]=str_replace(array("\r\n","\n","\r","\t"), ' ', $arr[$i]);
 			$arr[$i]=ltrim($arr[$i]);
 			if ( $arr[$i] == "" ){ continue; }
-			if ( eregi('^--',$arr[$i]) ){
-				$ret=fputs($fp,"$arr[$i]\n");
-			}else{
-				if ( eregi('^select',$arr[$i]) ){
-					$ret=fputs($fp,"--$arr[$i]\n");
-				}
-				$ret=fputs($fp,"$arr[$i];\n");
-			}
+			$ret=fputs($fp,"$arr[$i];\n");
 		}
 		fclose($fp);
 
@@ -509,7 +613,7 @@ class ApisController extends AppController {
 		fclose($fp);
 
 		// explainによるHiveQLチェック
-		$cmd = CMD_HIVE . " -f $chk_file > $exp_file 2>&1";
+		$cmd = CMD_HIVE . " -v -f $chk_file > $exp_file 2>&1";
 		$this->log("CMD=$cmd",LOG_DEBUG);
 		exec($cmd,$result,$retval);
 		$this->log("CMD=$cmd => $retval",LOG_DEBUG);
@@ -526,6 +630,18 @@ class ApisController extends AppController {
 		list($stage_cnt,$mapreduce_cnt,$line_cnt)=CommonComponent::CheckSQLexplain($u_userid,$u_id);
 		if ( $stage_cnt < 0 ){
 			$this->set("result" , array("result" => "unknown", "id" => "$u_id"));
+			return;
+		}
+
+		// データベース実行権限チェック
+		$u_databases=DATABASE_PERMISSION;
+		$u_user=$this->Users->find('all', array( "conditions" => "username='$u_userid'", "limit"=>1));
+		if(!empty($u_user[0]['Users']['hive_database'])){
+			$u_databases=$u_user[0]['Users']['hive_database'];	
+		}
+		$chk_result=CommonComponent::CheckExplainDatabase($u_userid,$u_id,$u_databases);
+		if ( $chk_result != 0 ){
+			$this->set("result" , array("result" => "指定されたデータベースへのアクセスが許可されていません", "id" => "$u_id"));
 			return;
 		}
 
@@ -576,11 +692,39 @@ class ApisController extends AppController {
 		}
 		fclose($fp);
 
+		//SQLファイルを書き換える(select文の前にselect文のコメントを挿入)
+		if ( !($fp=fopen($hql_file,"w")) ){
+			$this->set("result" , array("result" => "file open error", "id" => "$u_id"));
+			return;
+		}
+		$arr=preg_split("/;/",$u_query);
+		for ($i=0; $i<count($arr); $i++){
+			$arr[$i]=str_replace(array("\r\n","\n","\r","\t"), ' ', $arr[$i]);
+			$arr[$i]=ltrim($arr[$i]);
+			if ( $arr[$i] == "" ){ continue; }
+			if ( eregi('^--',$arr[$i]) ){
+				$ret=fputs($fp,"$arr[$i]\n");
+			}else{
+				if ( eregi('^select',$arr[$i]) ){
+					$ret=fputs($fp,"--$arr[$i]\n");
+				}
+				$ret=fputs($fp,"$arr[$i];\n");
+			}
+		}
+		fclose($fp);
 
 		//クエリの実行制限チェック
 		list($res,$hive_database)=CommonComponent::HiveBefore($u_userid,$u_query);	
 		if ( $res != 0 ){
-			$this->set("result" , array("result" => "permission error"));
+			$this->set("result" , array("result" => "許可されていないクエリです"));
+			return;
+		}
+
+		//同時実行数制限
+		$run_cnt=CommonComponent::GetQueryExecuteNum();	
+		//$this->log("CNT=$run_cnt",LOG_DEBUG);
+		if ( $run_cnt >= WEBHIVE_MAX_REQUEST ){
+			$this->set("result" , array("result" => "クエリ実行数が制限を超えました。しばらくたってから再実行してください"));
 			return;
 		}
 
@@ -704,6 +848,7 @@ class ApisController extends AppController {
 				return;
 			}
 
+			//zipファイルの場合
 			$read_file=DIR_RESULT."/${u_userid}/${u_id}_000.zip";
 			if ( file_exists($read_file) ){
 				$this->log("$read_file",LOG_DEBUG);
@@ -711,6 +856,16 @@ class ApisController extends AppController {
 				$this->set("result" , array("result" => "ok", "datas" => $datas, "dtype" => $u_dtype));
 				return;
 			}
+
+			//gzipファイルの場合
+			$read_file=DIR_RESULT."/${u_userid}/${u_id}_000.csv.gz";
+			if ( file_exists($read_file) ){
+				$this->log("$read_file",LOG_DEBUG);
+				$datas=CommonComponent::GZipFileRead($read_file,$u_dtype);
+				$this->set("result" , array("result" => "ok", "datas" => $datas, "dtype" => $u_dtype));
+				return;
+			}
+
 		}else{
 			$read_file=DIR_RESULT."/${u_userid}/${u_id}.${u_dtype}";
 			$this->log("$read_file",LOG_DEBUG);
@@ -744,44 +899,37 @@ class ApisController extends AppController {
 		}
 		CommonComponent::UpdateRunhistsResult($u_id,100);
 
-		//hadoop JobID取得
+		//ファイル名
 		$out_file=DIR_RESULT."/${u_userid}/${u_id}.out";
-		$jobid=CommonComponent::GetJobId($out_file);
-		if ( $jobid != "" ){
-			$cmd=CMD_HADOOP." job \-kill $jobid";
-			$this->log("CMD=$cmd",LOG_DEBUG);
-			exec("$cmd > /dev/null 2>&1",$result,$retval);
-			$this->log("CMD=$cmd => $retval",LOG_DEBUG);
-		}
-
-		//hiveクライアントプロセスが完了しているか？
 		$pid_file=DIR_RESULT."/${u_userid}/${u_id}.pid";
-		if ( !file_exists($pid_file) ){
-			$this->set("result" , array("result" => "ok"));
-			return;
+
+		//JOBキャンセルループ
+		for ($cancel_loop=0; $cancel_loop < JOBCANCEL_RETRY_MAX; $cancel_loop++){
+
+			$cancel_loop_max=JOBCANCEL_RETRY_MAX;
+			$this->log("JOB CANCEL ($cancel_loop/$cancel_loop_max)",LOG_DEBUG);
+
+			//hiveクライアントスクリプトが完了しているか？
+			if ( !file_exists($pid_file) ){
+				$this->set("result" , array("result" => "ok"));
+				return;
+			}
+
+			//hadoop JobID取得
+			$jobid=CommonComponent::GetJobId($out_file);
+
+			//JOBキャンセル
+			if ( $jobid != "" ){
+				$cmd=CMD_HADOOP." job \-kill $jobid";
+				$this->log("CMD=$cmd",LOG_DEBUG);
+				exec("$cmd > /dev/null 2>&1",$result,$retval);
+				$this->log("CMD=$cmd => $retval",LOG_DEBUG);
+			}
+
+			sleep(JOBCANCEL_RETRY_WAIT);
 		}
 
-		//hiveクライアント処理プロセスのPID
-		$pid="";
-		if ( !($fp=fopen($pid_file,"r")) ){
-			$this->set("result" , array("result" => "no process"));
-			return;
-		}
-		$pid=fgets($fp, 512);
-		$pid=rtrim($pid);
-		fclose($fp);
-		if ( $pid == "" ){
-			$this->set("result" , array("result" => "no process"));
-			return;
-		}
-
-		//hiveクライアントプロセスをkill
-		$this->log("kill -15 $pid",LOG_DEBUG);
-		if ( !posix_kill($pid,15) ){
-			$this->log("kill -15 $pid => error",LOG_DEBUG);
-		}
-
-		$this->set("result" , array("result" => "ok"));
+		$this->set("result" , array("result" => "retry over"));
 	}
 
 	///////////////////////////////////////////////////////////////////

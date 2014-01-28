@@ -1,11 +1,12 @@
 <?php
 class HiveqlsController extends AppController {
 	var $name = 'Hiveqls';
-	var $components = array('Auth');
+	var $components = array('Auth','Common');
 	var $scaffold;
 	var $user;
 
 	function beforeFilter() {
+		$this->set('app_title_msg', CommonComponent::GetSubTitle());
 
                 //admin権限以外はHiveQL画面表示不可
 		$ck=0;

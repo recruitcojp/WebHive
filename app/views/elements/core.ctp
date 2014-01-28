@@ -4,6 +4,9 @@ var sv_db='';
 var sv_sql='';
 var sv_func='';
 var sv_str='';
+var job_cancel_flg=0;
+
+Ext.Ajax.timeout = <?php echo CLIENT_TIMEOUT ?>;
 
 /////////////////////////////////////////////////////////
 // Windowを閉じる時の終了確認
@@ -19,6 +22,7 @@ window.onbeforeunload = function(event) {
 // Ajaxリクエスト失敗時の処理
 /////////////////////////////////////////////////////////
 function AjaxRequestFail(request,opt) {
+	ButtonControll("enable");
 	Ext.Msg.alert("リクエストエラー", "サーバリクエストが異常終了しました。").setIcon(Ext.Msg.ERROR);
 }
 
@@ -318,6 +322,7 @@ function HiveRequest_fin(result,opt) {
 // Hiveリクエスト完了処理
 /////////////////////////////////////////////////////////
 function HiveRequestFinish(){
+	job_cancel_flg=0;
 	SetProgress(100,100,100,100);
 	ButtonControll("enable");
 }
@@ -354,7 +359,7 @@ function HiveProcCheck_fin(result,opt) {
 		filnms = filnm.split(',');
 		for( i=0 ; i<filnms.length ; i++ ) {
 			msg="Result Download (" + filnms[i] + ")"; 
-			TextOutFunc("INF:<a href=\"/WebHive/result/" + userid + "/" + filnms[i] + "\" target=\"_blank\">" + msg + "<a>");
+			TextOutFunc("INF:<a href=\"/WebHive/result/download/" + userid + "/" + filnms[i] + "\" target=\"_blank\">" + msg + "<a>");
 		}
 		TextOutFunc("INF:HiveQL normal end");
 		HiveRequestFinish();
@@ -367,7 +372,7 @@ function HiveProcCheck_fin(result,opt) {
 		filnms = filnm.split(',');
 		for( i=0 ; i<filnms.length ; i++ ) {
 			msg="Result Download (" + filnms[i] + ")"; 
-			TextOutFunc("INF:<a href=\"/WebHive/result/" + userid + "/" + filnms[i] + "\" target=\"_blank\">" + msg + "<a>");
+			TextOutFunc("INF:<a href=\"/WebHive/result/download/" + userid + "/" + filnms[i] + "\" target=\"_blank\">" + msg + "<a>");
 		}
 		TextOutFunc("WAR:file size limit");
 		HiveRequestFinish();
@@ -385,6 +390,8 @@ function HiveProcCheck_fin(result,opt) {
 /////////////////////////////////////////////////////////
 function HiveJobCancel() {
 	if ( sv_timerid == "" ){ return; }
+	if ( job_cancel_flg == 1 ){ return; }
+	job_cancel_flg=1;
 
 	Ext.Ajax.request({
 		url:'/WebHive/apis/jobcancel',
@@ -398,13 +405,13 @@ function HiveJobCancel() {
 	});
 
 	TextOutFunc("INF:HiveQL Job Cancel (ID=" + sv_reqid + ")");
-	clearTimeout(sv_timerid);
-	sv_timerid='';
 }
 
 function HiveJobCancel_fin(result,opt) {
 	var res = Ext.decode(result.responseText);
 	TextOutFunc("INF:HiveQL Job Cancel (" + res.result + ")");
+	job_cancel_flg=0;
+	if ( res.result != "ok" ){ return; }
 	HiveRequestFinish();
 }
 

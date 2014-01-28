@@ -34,7 +34,10 @@ echo $this->element('core',array("auth_flg"=>$auth_flg));
 
 <?php echo $this->element('banner'); ?>
 
-<div id="header" style="padding:3px;font-weight:normal;font-size:12px;color:#15428b;" align="right">
+<div id="header" style="padding:3px;font-weight:normal;font-size:12px;color:#15428b;" >
+<table width='100%'><tr>
+<td align="left"><?php echo APP_TITLE ?><?php echo $app_title_msg; ?></td>
+<td align="right">
 <?php echo $user['User']['username']."さん"; ?>
 &nbsp; <a href="/WebHive/users/logout">LOGOUT</a>
 &nbsp; <a href="/WebHive/entity">Hive構成情報表示</a>
@@ -42,6 +45,8 @@ echo $this->element('core',array("auth_flg"=>$auth_flg));
 <?php if ( TITLE_URL2 != "" ){ echo "&nbsp;" . TITLE_URL2; } ?>
 &nbsp; <a href="/WebHive/help" onclick="window.open('/WebHive/help','_blank','width=900,height=500,scrollbars=yes'); return false;">変更履歴</a>
 &nbsp;
+</td>
+</tr></table>
 </div>
 <div id="displayPanel" ></div>  
 </body>

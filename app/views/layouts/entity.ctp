@@ -14,6 +14,9 @@
 		<td colspan="2">
 			<table width="100%">
 				<tr>
+<td align="left">
+<?php echo APP_TITLE ?><?php echo $app_title_msg; ?>
+</td>
 					<td align="right">
 <?php echo $user['User']['username']."さん"; ?>&nbsp;&nbsp;
 ｜<a href='/WebHive/users/logout'>LOGOUT</a>

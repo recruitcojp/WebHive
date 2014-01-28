@@ -1,7 +1,7 @@
 <?php
 class EntityController extends AppController {
 	var $name = 'Entity';
-	var $components = array('RequestHandler','Auth');
+	var $components = array('RequestHandler','Auth','Common');
 	var $user;
 
 	function index() {
@@ -84,12 +84,19 @@ class EntityController extends AppController {
 		while (($buffer = fgets($fp)) !== false) {
 			$buffer = ereg_replace("\r|\n","",$buffer);
 			if ( $buffer == "" ){ continue; }
-			list($c1,$c2,$c3,$c4)=split('	',$buffer);
-			if ( $c1 != "" ){ $sv_table=$c1; }
-			if ( $sv_table == "" ){ continue; }
-			if ( $sv_table != $c1 ){ continue; }
-			$col_data["$c2"]=$c3;
-			$code_data["$c2"]=$c4;
+			$arr=split('	',$buffer);
+			if ( empty($arr[0]) ){ continue; }
+			if ( empty($arr[1]) ){ continue; }
+			if ( empty($arr[2]) ){
+				$col_data[$arr[0]][$arr[1]]="";
+			}else{
+				$col_data[$arr[0]][$arr[1]]=$arr[2];
+			}
+			if ( empty($arr[3]) ){
+				$code_data[$arr[0]][$arr[1]]="";
+			}else{
+				$code_data[$arr[0]][$arr[1]]=$arr[3];
+			}
 		}
 		fclose($fp);
 
@@ -185,15 +192,15 @@ class EntityController extends AppController {
 				//表示
 				$buffers=split('[	 ]+',$buffer);
 				if ( empty($buffers[0]) ){ continue; }
-				if ( empty($col_data[$buffers[0]]) ){
+				if ( empty($col_data[$p_table_id][$buffers[0]]) ){
 					$entity_name="";
 				}else{
-					$entity_name=$col_data[$buffers[0]];
+					$entity_name=$col_data[$p_table_id][$buffers[0]];
 				}
-				if ( empty($code_data[$buffers[0]]) ){
+				if ( empty($code_data[$p_table_id][$buffers[0]]) ){
 					$code_name="";
 				}else{
-					$code_name=$code_data[$buffers[0]];
+					$code_name=$code_data[$p_table_id][$buffers[0]];
 				}
 		
 				if ( ($line_flg % 2) == 1 ){ $p_data_t.="<tr bgcolor=\"#f5f5f5\">"; }else{ $p_data_t.="<tr bgcolor=\"#e7e9f2\">"; }
@@ -294,16 +301,23 @@ class EntityController extends AppController {
 		//////////////////////////////////////////////////////////////////
 		//テーブル定義情報
 		//////////////////////////////////////////////////////////////////
-		$sv_table="";
 		$fp = fopen(DIR_ENTITY."/conf/desc.dat", "r");	
 		while (($buffer = fgets($fp)) !== false) {
 			$buffer = ereg_replace("\r|\n","",$buffer);
 			if ( $buffer == "" ){ continue; }
-			list($c1,$c2,$c3,$c4)=split('	',$buffer);
-			if ( $c1 != "" ){ $sv_table=$c1; }
-			if ( $sv_table == "" ){ continue; }
-			$col_data["$sv_table"]["$c2"]=$c3;
-			$code_data["$sv_table"]["$c2"]=$c4;
+			$arr=split('	',$buffer);
+			if ( empty($arr[0]) ){ continue; }
+			if ( empty($arr[1]) ){ continue; }
+			if ( empty($arr[2]) ){
+				$col_data[$arr[0]][$arr[1]]="";
+			}else{
+				$col_data[$arr[0]][$arr[1]]=$arr[2];
+			}
+			if ( empty($arr[3]) ){
+				$code_data[$arr[0]][$arr[1]]="";
+			}else{
+				$code_data[$arr[0]][$arr[1]]=$arr[3];
+			}
 		}
 		fclose($fp);
 
@@ -328,7 +342,7 @@ class EntityController extends AppController {
 		header ("Content-disposition: attachment; filename=" . $csv_file);
 		header ("Content-type: application/octet-stream; name=" . $csv_file);
 
-		$p_data = mb_convert_encoding($p_data, "SJIS", "UTF-8");
+		$p_data = mb_convert_encoding($p_data, "SJIS-WIN", "UTF-8");
 		print "$p_data";
 	}
 
@@ -338,6 +352,7 @@ class EntityController extends AppController {
 	function beforeRender() {
 		$this->user=$this->Auth->user();
 		$this->set('user', $this->user);
+		$this->set('app_title_msg', CommonComponent::GetSubTitle());
 	}
 
 

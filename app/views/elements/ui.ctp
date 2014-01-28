@@ -190,7 +190,7 @@ Ext.onReady(function() {
 		xtype:'form',
 		layout: 'column',
 		border: false,
-		width: 550,
+		width: 620,
 		items:[{
 <?php 
 if ( $auth_flg['create_db'] == 1 ){
@@ -269,7 +269,7 @@ echo "
 		xtype:'form',
 		layout: 'column',
 		border: false,
-		width: 550,
+		width: 620,
 		buttons:[{
 			xtype: 'button',
 			id:'btnRun',
@@ -319,6 +319,14 @@ if ( $auth_flg['file_upload']==1 ){ echo "
 			id:'btnUpload',
 			minWidth: 70,
 			text: config.ui.btnUpload
+";
+}
+if ( $auth_flg['user_mgr']==1 ){ echo "
+		},{
+			xtype: 'button',
+			id:'btnUserMgr',
+			minWidth: 70,
+			text: config.ui.btnUserMgr
 ";
 }
 ?>
@@ -417,7 +425,7 @@ if ( $auth_flg['file_upload']==1 ){ echo "
 			xtype:'form',
 			layout: 'column',
 			border: false,
-			width: 550,
+			width: 620,
 			height: 50,
 			items:inputButton
 		}]
@@ -561,6 +569,18 @@ echo "
 	///////////////////////////////////////////////////////////////////
 	Ext.get('btnUpload').on('click', function() {
 		window.open('/WebHive/uploads', '', 'width=550,height=250');
+	});
+";
+} 
+
+if ( $auth_flg['user_mgr'] == 1 ){
+echo "
+	///////////////////////////////////////////////////////////////////
+	//ユーザ管理画面
+	///////////////////////////////////////////////////////////////////
+	Ext.get('btnUserMgr').on('click', function() {
+		//window.open('/WebHive/users/management', '', 'width=550,height=250');
+		window.open('/WebHive/users/auth', '', 'width=600,height=600');
 	});
 ";
 } 

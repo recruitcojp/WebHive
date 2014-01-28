@@ -86,9 +86,9 @@ class CommonComponent extends Object {
 			return $datas;
 		}
 		while(!feof($fp)){
-			$w = fgets($fp, 512);
+			$w = fgets($fp, 1024);
 			if ( $dtype == "csv" ){
-				$w=mb_convert_encoding(rtrim($w),"UTF-8","SJIS");
+				$w=mb_convert_encoding(rtrim($w),"UTF-8","SJIS-WIN");
 			}else{
 				$w=rtrim($w);
 			}
@@ -101,7 +101,32 @@ class CommonComponent extends Object {
 	}
 
 	///////////////////////////////////////////////////////////////////
-	//圧縮HiveQL結果ファイルの内容を返す
+	//gzip圧縮HiveQL結果ファイルの内容を返す
+	///////////////////////////////////////////////////////////////////
+	function GZipFileRead($zip_file,$dtype) {
+		$datas=array();
+		$line=0;
+
+		$fp = gzopen($zip_file,'r');
+		while( true ){
+			$w=gzgets($fp, 102400);
+			if ( $w == "" ){ break; }
+			if ( $dtype == "csv" ){
+				$w=mb_convert_encoding(rtrim($w),"UTF-8","SJIS-WIN");
+			}else{
+				$w=rtrim($w);
+			}
+//$this->log("[$line] $w",LOG_DEBUG);
+			$datas[]=array("data"=>$w);
+			$line++;
+			if ( $line >= RESULT_LINE_MAX ){ break; }
+		}
+		gzclose($fp);
+		return $datas;
+	}
+
+	///////////////////////////////////////////////////////////////////
+	//zip圧縮HiveQL結果ファイルの内容を返す
 	///////////////////////////////////////////////////////////////////
 	function ZipFileRead($zip_file,$dtype) {
 		$datas=array();
@@ -118,13 +143,13 @@ class CommonComponent extends Object {
 			$w=CommonComponent::ZipFileReadBuffer($source);
 			if ( $w == "" ){ break; }
 			if ( $dtype == "csv" ){
-				$w=mb_convert_encoding(rtrim($w),"UTF-8","SJIS");
+				$w=mb_convert_encoding(rtrim($w),"UTF-8","SJIS-WIN");
 			}else{
 				$w=rtrim($w);
 			}
 			$datas[]=array("data"=>$w);
 			$line++;
-			if ( $line >= 1000 ){ break; }
+			if ( $line >= RESULT_LINE_MAX ){ break; }
 		}
 		$source->close();
 
@@ -158,16 +183,46 @@ class CommonComponent extends Object {
 			$u_auth=$users[0]['Users']['authority'];
 			$u_database=$users[0]['Users']['hive_database'];
 		}
+		if ( $u_database == "" ){
+			$u_database=DATABASE_PERMISSION;
+		}
 
 		//権限チェック
 		if ( CommonComponent::CheckSQLAuth($u_auth,$u_query) != 0 ){
 			return array(1,"");
 		}
 
-		//接続先Hive Server設定
-		$hive_database="";
-		if ( $u_database != "" ){ $hive_database=$u_database; }
-		return array(0,$hive_database);
+		return array(0,$u_database);
+	}
+
+	///////////////////////////////////////////////////////////////////
+	//WebHiveのクエリ実行数
+	///////////////////////////////////////////////////////////////////
+	function GetQueryExecuteNum() {
+		$query_cnt=0;
+
+		//処理中のクエリをチェック
+		$querys=$this->Runhists->find('all', array( 'conditions' => "rsts='0'"));
+		for($i=0; $i<count($querys); $i++){
+
+			//PIDファイル名生成
+			$u_userid=$querys[$i]['Runhists']['username'];
+			$u_rid=$querys[$i]['Runhists']['rid'];
+			$pid_file=DIR_RESULT."/${u_userid}/${u_rid}.pid";
+			//$this->log($pid_file,LOG_DEBUG);
+
+			//プロセス存在チェック
+			if ( !file_exists($pid_file) ){ continue; }
+			if ( !($fp=fopen($pid_file,"r")) ){ continue; }
+			$pid=fgets($fp, 10240);
+			$pid=rtrim($pid);
+			fclose($fp);
+			if ( $pid == "" ){ continue; }
+			if ( !posix_kill($pid,0) ){ continue; }
+
+			$query_cnt++;
+		}
+		return $query_cnt;
 	}
 
 	///////////////////////////////////////////////////////////////////
@@ -212,7 +267,7 @@ class CommonComponent extends Object {
 		//予想時間
 		if ( !($fp=fopen($exp_file,"r")) ){ return array(-1,-1,-1); }
 		while(!feof($fp)){
-			$data = fgets($fp, 512);
+			$data = fgets($fp, 10240);
 			$line_cnt++;
 			if ( eregi("^Time taken:",$data) ){ $stage_cnt++; }
 			if ( eregi("Map Reduce",$data) ){ $mapreduce_cnt++; }
@@ -222,6 +277,77 @@ class CommonComponent extends Object {
 		return array($stage_cnt,$mapreduce_cnt,$line_cnt);
 	}
 
+	///////////////////////////////////////////////////////////////////
+	//データベース実行権限チェック
+	///////////////////////////////////////////////////////////////////
+	function CheckExplainDatabase($u_userid,$u_id,$u_databases) {
+
+		//$this->log("CheckExplainDatabase($u_userid,$u_id,$u_databases)",LOG_DEBUG);
+		if ( $u_databases == "" ){ return 0; }
+
+		//EXPLAIN結果ファイル読み込み
+		$ck_flg=0;
+		$cur_db="";
+		$exp_file=DIR_RESULT."/${u_userid}/${u_id}.exp";
+		if ( !($fp=fopen($exp_file,"r")) ){ return -1; }
+		while(!feof($fp)){
+			$data = fgets($fp, 10240);
+			$data=str_replace(array("\r\n","\n","\r"), '', $data);
+			if ( eregi("^use ",$data) ){
+				list($dummy,$cur_db)=split("[ ;]",$data); 
+			}
+
+			if ( eregi("TOK_QUERY|TOK_CREATETABLE|TOK_DROPTABLE",$data) ){
+				$array=preg_split("/[\(\)]+/",$data); 
+				foreach ($array as $i => $value) {
+					$data=$array[$i];
+					if ( !eregi("^TOK_TABNAME",$data) ){ continue; }
+					$array2 = split(" ",$data); 
+					if ( empty($array2[2]) ){
+						$sql_db="";
+						$sql_tbl=$array2[1];
+					}else{
+						$sql_db=$array2[1];
+						$sql_tbl=$array2[2];
+					}
+					if ( $sql_db == "" ){ $sql_db=$cur_db; }
+
+					//クエリを許可するか判定
+					if ( CommonComponent::CheckDatabase($u_databases,$sql_db) != 0 ){
+						$ck_flg++;
+					}
+				}
+			}
+		}
+		fclose($fp);
+
+		return $ck_flg;
+	}
+
+	///////////////////////////////////////////////////////////////////
+	// データベース許可チェック
+	///////////////////////////////////////////////////////////////////
+	function CheckDatabase($u_databases,$sql_db){
+		if ( $u_databases == "" ){ return 0; }
+
+		//マッチ判定
+		$not_flg=0;
+		$match_flg=0;
+		if ( substr($u_databases,0,1) == '!' ){
+			$not_flg=1;
+			$u_databases=substr($u_databases,1);
+		}
+		if ( preg_match("/$u_databases/i",$sql_db) ){
+			$match_flg=1;
+		}
+
+		$ck_flg=0;
+		if ( $not_flg == 0 and $match_flg == 0 ){ $ck_flg=1; }
+		if ( $not_flg == 1 and $match_flg == 1 ){ $ck_flg=1; }
+
+		//$this->log("[$u_databases][$sql_db] -> [$not_flg][$match_flg] -> $ck_flg",LOG_DEBUG);
+		return $ck_flg;
+	}
 
 	///////////////////////////////////////////////////////////////////
 	// Job実行状況の取得
@@ -351,7 +477,7 @@ class CommonComponent extends Object {
 			return "";
 		}
 		while(!feof($fp)){
-			$data = fgets($fp, 512);
+			$data = fgets($fp, 1024);
 			$data=rtrim($data);
 			if ( ereg("^Starting Job = ",$data) ){
 				$arr=preg_split("/[ ,]+/",$data);
@@ -385,6 +511,29 @@ class CommonComponent extends Object {
 		}
 
 		return 0;
+	}
+
+	///////////////////////////////////////////////////////////////////
+	//環境名
+	///////////////////////////////////////////////////////////////////
+	function GetSubTitle(){
+
+		//ファイル名指定の場合
+		if ( eregi("^FILE:",APP_TITLE_MSG) ){ 
+			$sub_title="";
+			$sub_title_file=substr(APP_TITLE_MSG,5);
+			if ( !file_exists($sub_title_file) ){ return ""; }
+			if ( !($fp=fopen($sub_title_file,"r")) ){
+				return "";
+			}
+			while(!feof($fp)){
+				$sub_title .= fgets($fp, 1024);
+			}
+			fclose($fp);
+			return $sub_title;
+		}
+
+		return APP_TITLE_MSG;
 	}
 }
 ?>

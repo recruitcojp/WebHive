@@ -1,7 +1,7 @@
 <?php
 class PagesController extends AppController {
 	var $name = 'Pages';
-	var $components = array('Auth');
+	var $components = array('Auth','Common');
 	var $user;
 
 	function index() {
@@ -38,6 +38,7 @@ class PagesController extends AppController {
 		}
 
 		$this->set('user', $this->user);
+		$this->set('app_title_msg', CommonComponent::GetSubTitle());
 	}
 }
 ?>
