@@ -1,6 +1,7 @@
 <?php
 class HelpController extends AppController {
 	var $name = 'Help';
+	var $components = array('Common');
 
 	function index() {
 		//インフォメーションファイル
@@ -13,6 +14,7 @@ class HelpController extends AppController {
 			fclose($fp);
 		}
 
+		$this->set('app_title_msg', CommonComponent::GetSubTitle());
 		$this->set("info" , array("info" => "$info"));
 	}
 }

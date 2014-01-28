@@ -4,9 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>ファイルのアップロード</title>
 <link rel="stylesheet" href="/WebHive/ext/resources/css/ext-all.css" type="text/css" />
-<script type="text/javascript" src="/WebHive/ext/adapter/ext/ext-base.js"></script>
 <script type="text/javascript" src="/WebHive/ext/ext-all.js"></script>
-<script type="text/javascript" src="/WebHive/ext/src/locale/ext-lang-ja.js"></script>
 <script type="text/javascript" src="/WebHive/js/fileupload.js"></script>
 <link rel="stylesheet" type="text/css" href="/WebHive/ux/fileupload/fileuploadfield.css"/>
 <script type="text/javascript" src="/WebHive/ux/fileupload/FileUploadField.js"></script>
@@ -19,5 +17,6 @@
 <body bgcolor="#D3E1F1">
 <div style="width:500px;margin:0 auto;padding:15px;background-color:#D3E1F1;font-size:small;">
 <div id="fi-form"></div>
+</div>
 </body>
 </html>

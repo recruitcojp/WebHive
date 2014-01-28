@@ -1,6 +1,7 @@
 <?php
 class TipsController extends AppController {
 	var $name = 'Tips';
+	var $components = array('Common');
 
 	function index() {
 		$tips="";
@@ -12,6 +13,7 @@ class TipsController extends AppController {
 			fclose($fp);
 		}
 
+		$this->set('app_title_msg', CommonComponent::GetSubTitle());
 		$this->set("tips" , array("tips" => "$tips"));
 	}
 }

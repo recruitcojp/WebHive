@@ -12,7 +12,7 @@ echo $scripts_for_layout;
 <body>
 <div id="container">
 	<div id="header">
-	<h1><?php echo APP_TITLE ?></h1>
+	<h1><?php echo APP_TITLE ?><?php if( !empty($app_title_msg) ){ echo $app_title_msg; } ?></h1>
 	</div>
 	<div id="content">
 		<?php echo $this->Session->flash(); ?>

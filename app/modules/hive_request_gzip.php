@@ -12,9 +12,7 @@ class Configure {
 function write($config, $value = null) {}
 }
 
-//ファイルアーカイブ用
-set_include_path(get_include_path() .PATH_SEPARATOR. DIR_ARCH_LIB); 
-require_once "File/Archive.php";
+set_include_path(get_include_path() .PATH_SEPARATOR. DIR_ARCH_LIB);
 require_once "common/query_parser.php";
 
 //LANG設定
@@ -76,7 +74,7 @@ $nowdate=date("Y/m/d g:i:s");
 WriteFinFile($fin_file,"START:$nowdate\n");
 
 $sv_db="";
-$sv_zip_file="";
+$sv_gzip_file="";
 $file_cnt=0;
 $file_size=0;
 $sv_query="";
@@ -126,29 +124,27 @@ while(!feof($ifp)){
 		break;
 	}
 	$file_size += $row_len;
-	$zip_file=sprintf("%s/%s/%s_%03d.zip",DIR_RESULT,$hive_uid,$hive_id,$file_cnt);
-	$zip_file_in=sprintf("%s_%03d.csv",$hive_id,$file_cnt);
+	$gzip_file=sprintf("%s/%s/%s_%03d.csv.gz",DIR_RESULT,$hive_uid,$hive_id,$file_cnt);
 
 	//出力ファイルのオープン
-	if ( $sv_zip_file != $zip_file ){
-		if ( $sv_zip_file != "" ){
-			WriteFinFile($fin_file,"OUT:$sv_zip_file\n");
-			$ofp->close();
+	if ( $sv_gzip_file != $gzip_file ){
+		if ( $sv_gzip_file != "" ){
+			WriteFinFile($fin_file,"OUT:$sv_gzip_file\n");
+			gzclose($ofp);
 		}
-		$ofp = File_Archive::toArchive($zip_file, File_Archive::toFiles(),"zip");
-		$ofp->newFile($zip_file_in);
+		$ofp = gzopen($gzip_file,'w9');
 	}
-	$sv_zip_file=$zip_file;
+	$sv_gzip_file=$gzip_file;
 
 	//出力
 	$row=mb_convert_encoding($row,"SJIS-WIN","UTF-8");
-	$ofp->writeData($row);
+	gzwrite($ofp,$row);
 }
 pclose($ifp);
 
-if ( $sv_zip_file != "" ){
-	WriteFinFile($fin_file,"OUT:$sv_zip_file\n");
-	$ofp->close();
+if ( $sv_gzip_file != "" ){
+	WriteFinFile($fin_file,"OUT:$sv_gzip_file\n");
+	gzclose($ofp);
 }
 
 //処理完了ファイルのクローズ

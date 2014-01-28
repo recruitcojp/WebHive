@@ -143,6 +143,7 @@ class DatauploadsController extends AppController {
 	}
 
 	function beforeRender() {
+		$this->set('app_title_msg', CommonComponent::GetSubTitle());
 	}
 }
 ?>
